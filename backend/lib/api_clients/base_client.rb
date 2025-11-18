@@ -1,6 +1,7 @@
 require 'net/http'
 require 'json'
 require 'uri'
+require 'openssl'
 
 # BaseApiClient - Base class for all API clients
 # Provides common HTTP request handling, timeout configuration, error parsing, retry logic
@@ -24,6 +25,15 @@ class BaseApiClient
     uri = URI(url)
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
+    
+    # SSL verification
+    # In development, disable strict verification to avoid certificate chain issues
+    if ENV['RACK_ENV'] == 'development' || ENV['RACK_ENV'].nil?
+      http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    else
+      # Production: strict verification
+      http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+    end
 
     # Set reasonable timeouts
     http.open_timeout = 10
@@ -41,6 +51,15 @@ class BaseApiClient
     retries = 0
     begin
       response = http.request(request)
+      
+      # Log response details for debugging if there's an error
+      if response.code.to_i >= 400 || (response.body && response.body.start_with?('<!DOCTYPE', '<html', '<HTML'))
+        puts "API Error Response (#{url}):"
+        puts "  Status: #{response.code} #{response.message}"
+        puts "  Content-Type: #{response['Content-Type']}"
+        puts "  Body preview: #{response.body ? response.body[0..500] : '(empty)'}"
+      end
+      
       parse_response(response)
     rescue Net::OpenTimeout, Net::ReadTimeout => e
       retries += 1
@@ -90,6 +109,23 @@ class BaseApiClient
 
   # Parse API response
   def parse_response(response)
+    # Check if response body exists
+    unless response.body
+      return { 'error' => { 'message' => "API returned empty response. Status: #{response.code}" } }
+    end
+
+    # Check if response is HTML (error page) instead of JSON
+    if response.body.start_with?('<!DOCTYPE', '<html', '<HTML')
+      error_msg = "API returned HTML instead of JSON. Status: #{response.code} #{response.message}. "
+      # Try to extract error message from HTML if possible
+      if response.body.include?('<title>')
+        title_match = response.body.match(/<title>(.*?)<\/title>/i)
+        error_msg += "Page title: #{title_match[1]} " if title_match
+      end
+      error_msg += "Response preview: #{response.body[0..300]}"
+      return { 'error' => { 'message' => error_msg } }
+    end
+
     parsed = JSON.parse(response.body)
 
     if response.code.to_i >= 400
@@ -99,7 +135,9 @@ class BaseApiClient
       parsed
     end
   rescue JSON::ParserError => e
-    { 'error' => { 'message' => "Failed to parse API response: #{e.message}" } }
+    error_msg = "Failed to parse API response: #{e.message}"
+    error_msg += ". Response preview: #{response.body[0..200]}" if response.body
+    { 'error' => { 'message' => error_msg } }
   end
 
   # Extract error message from response

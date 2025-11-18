@@ -1,0 +1,13 @@
+{
+  "id": "c8284538-e545-40d3-8046-0d0804671e56",
+  "created_at": "2025-11-18T22:24:58+11:00",
+  "updated_at": "2025-11-18T22:24:58+11:00",
+  "title": "Test",
+  "system_prompt_id": null,
+  "api_provider": "venice",
+  "voice": "echo",
+  "messages": [],
+  "metadata": {
+    "word_count": 0
+  }
+}

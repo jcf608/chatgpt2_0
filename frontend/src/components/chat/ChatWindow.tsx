@@ -1,6 +1,7 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { MessageList } from './MessageList';
 import { MessageInput } from './MessageInput';
+import { QuickActionPills } from './QuickActionPills';
 import { LoadingSpinner } from '../common';
 import type { Message } from '../../api/types';
 
@@ -9,6 +10,7 @@ interface ChatWindowProps {
   onSendMessage: (content: string) => Promise<void>;
   isLoading?: boolean;
   wordCount?: number;
+  chatId?: string | null;
 }
 
 export const ChatWindow: React.FC<ChatWindowProps> = ({
@@ -16,13 +18,36 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   onSendMessage,
   isLoading = false,
   wordCount,
+  chatId,
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [selectedPillMessage, setSelectedPillMessage] = useState<string>('');
+  const [pillResetKey, setPillResetKey] = useState<number>(0);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Reset selected pills when chat changes
+  useEffect(() => {
+    setSelectedPillMessage('');
+    setPillResetKey((prev) => prev + 1);
+  }, [chatId]);
+
+  const handlePillSelectionChange = (selectedIds: string[], combinedMessage: string) => {
+    setSelectedPillMessage(combinedMessage);
+  };
+
+  const handleSendWithPills = async (userContent: string) => {
+    // Content already includes pill text from the input field
+    if (userContent.trim()) {
+      // Clear selected pills after sending
+      setSelectedPillMessage('');
+      setPillResetKey((prev) => prev + 1);
+      await onSendMessage(userContent.trim());
+    }
+  };
 
   return (
     <div className="flex flex-col h-full bg-bg-main">
@@ -63,7 +88,19 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       )}
 
       {/* Message input */}
-      <MessageInput onSend={onSendMessage} isLoading={isLoading} />
+      <MessageInput 
+        onSend={handleSendWithPills} 
+        isLoading={isLoading}
+        prependedText={selectedPillMessage}
+        key={chatId || 'new-chat'}
+      />
+
+      {/* Quick Action Pills - positioned below input */}
+      <QuickActionPills 
+        onSelectionChange={handlePillSelectionChange}
+        disabled={isLoading}
+        resetTrigger={pillResetKey}
+      />
     </div>
   );
 };

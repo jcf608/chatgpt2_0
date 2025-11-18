@@ -130,7 +130,7 @@ class ApiClient {
     return response.data.data || [];
   }
 
-  async addMessage(chatId: string, message: Omit<Message, 'id' | 'created_at'>): Promise<Message> {
+  async addMessage(chatId: string, message: { role: 'user' | 'assistant' | 'system'; content: string }): Promise<Message> {
     const response = await this.client.post<ApiResponse<Message>>(
       `/api/v1/chats/${chatId}/messages`,
       message

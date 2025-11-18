@@ -20,8 +20,24 @@ class MessagesAPI < BaseAPI
 
     chat_service = ChatService.new(params[:id])
     message = chat_service.add_message(role: data[:role], content: data[:content])
-
-    success_response(message, status: 201)
+    
+    # Ensure message is a hash (not nil) and convert symbol keys to strings for JSON serialization
+    if message.nil?
+      error_response("Failed to add message: message was nil", code: 'INTERNAL_ERROR', status: 500)
+    else
+      # Convert symbol keys to string keys for consistent JSON serialization
+      message_hash = if message.is_a?(Hash)
+        message.each_with_object({}) { |(k, v), h| h[k.to_s] = v }
+      else
+        message
+      end
+      success_response(message_hash, status: 201)
+    end
+  rescue StandardError => e
+    # Log the full error for debugging
+    puts "Error in add message: #{e.class}: #{e.message}"
+    puts e.backtrace.first(10).join("\n")
+    error_response("Failed to add message: #{e.message}", code: 'INTERNAL_ERROR', status: 500)
   end
 end
 

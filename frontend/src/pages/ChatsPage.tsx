@@ -3,9 +3,11 @@ import { AppLayout } from '../components/layout/AppLayout';
 import { ChatWindow } from '../components/chat/ChatWindow';
 import { ChatHistory } from '../components/chat/ChatHistory';
 import { Button, ErrorMessage } from '../components/common';
-import { Plus } from 'lucide-react';
+import { Plus, FileText } from 'lucide-react';
 import { useChatStore } from '../store/chatStore';
 import { useSettingsStore } from '../store/settingsStore';
+import { usePromptStore } from '../store/promptStore';
+import { apiClient } from '../api/client';
 import type { Chat } from '../api/types';
 
 export const ChatsPage: React.FC = () => {
@@ -23,8 +25,17 @@ export const ChatsPage: React.FC = () => {
     clearError,
   } = useChatStore();
 
-  const { apiProvider } = useSettingsStore();
+  const { apiProvider, selectedPromptId } = useSettingsStore();
+  const { prompts, fetchPrompts } = usePromptStore();
   const [wordCount, setWordCount] = useState<number>(0);
+
+  // Fetch prompts on mount to get the selected prompt name
+  useEffect(() => {
+    fetchPrompts();
+  }, [fetchPrompts]);
+
+  // Get the selected prompt
+  const selectedPrompt = prompts.find((p) => p.id === selectedPromptId);
 
   // Fetch chats on mount
   useEffect(() => {
@@ -65,25 +76,69 @@ export const ChatsPage: React.FC = () => {
   };
 
   const handleSendMessage = async (content: string) => {
+    let chatId: string;
+    let chat: Chat;
+    
     if (!currentChat) {
       // Create a new chat if none exists
-      const newChat = await createChat({
+      chat = await createChat({
         title: content.substring(0, 50),
         api_provider: apiProvider,
       });
-      await sendMessage(newChat.id, content);
+      chatId = chat.id;
     } else {
-      await sendMessage(currentChat.id, content);
-      // Refresh word count after sending
-      if (currentChat.id) {
-        await fetchChat(currentChat.id);
+      chat = currentChat;
+      chatId = currentChat.id;
+    }
+
+    // If this is the first message, add system prompts silently
+    // System prompt (from system_prompt_id) must be FIRST, then selected prompt
+    const isFirstMessage = !currentChat || currentChat.messages.length === 0;
+    if (isFirstMessage) {
+      // 1. FIRST: Add system prompt (from chat.system_prompt_id) if it exists
+      if (chat.system_prompt_id) {
+        try {
+          const systemPrompt = await apiClient.getPrompt(chat.system_prompt_id);
+          if (systemPrompt) {
+            await apiClient.addMessage(chatId, {
+              role: 'system',
+              content: systemPrompt.content,
+            });
+          }
+        } catch (error) {
+          console.error('Failed to load system prompt:', error);
+        }
+      }
+
+      // 2. SECOND: Add selected prompt (from settings) if it exists
+      if (selectedPrompt) {
+        await apiClient.addMessage(chatId, {
+          role: 'system',
+          content: selectedPrompt.content,
+        });
       }
     }
+
+    // Send the user's message
+    await sendMessage(chatId, content);
+    
+    // Refresh word count after sending
+    await fetchChat(chatId);
   };
 
   return (
     <AppLayout
-      headerTitle="Chats"
+      headerTitle={
+        <div className="flex items-center gap-2">
+          <span>Chats</span>
+          {selectedPrompt && (
+            <div className="flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary rounded-lg text-sm">
+              <FileText className="h-3 w-3" />
+              <span>{selectedPrompt.name}</span>
+            </div>
+          )}
+        </div>
+      }
       headerActions={
         <Button onClick={handleNewChat} variant="primary">
           <Plus className="h-4 w-4" />
@@ -123,6 +178,7 @@ export const ChatsPage: React.FC = () => {
               onSendMessage={handleSendMessage}
               isLoading={isLoading}
               wordCount={wordCount}
+              chatId={currentChat.id}
             />
           ) : (
             <div className="flex flex-col items-center justify-center h-full text-center p-6">

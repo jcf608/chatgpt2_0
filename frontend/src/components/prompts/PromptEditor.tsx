@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Trash2, X } from 'lucide-react';
+import { Save, Trash2, X, Copy, Check } from 'lucide-react';
 import { Button, Input, ErrorMessage } from '../common';
 import type { Prompt } from '../../api/types';
 
@@ -22,6 +22,7 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
 }) => {
   const [name, setName] = useState('');
   const [content, setContent] = useState('');
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (prompt) {
@@ -48,6 +49,13 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
 
   const wordCount = content.trim().split(/\s+/).filter(Boolean).length;
   const charCount = content.length;
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(content).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
   return (
     <div className="flex flex-col h-full">
@@ -84,9 +92,31 @@ export const PromptEditor: React.FC<PromptEditorProps> = ({
           />
 
           <div>
-            <label className="block text-sm font-medium text-text-secondary mb-1">
-              Prompt Content
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm font-medium text-text-secondary">
+                Prompt Content
+              </label>
+              {content && (
+                <button
+                  type="button"
+                  onClick={copyToClipboard}
+                  className="flex items-center gap-1 px-2 py-1 text-xs text-text-tertiary hover:text-primary hover:bg-bg-tertiary rounded transition-colors duration-default ease-in-out"
+                  title="Copy to clipboard"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="h-3 w-3 text-success" />
+                      <span className="text-success">Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-3 w-3" />
+                      <span>Copy</span>
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}

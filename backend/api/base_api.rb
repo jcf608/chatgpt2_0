@@ -78,7 +78,11 @@ class BaseAPI < Sinatra::Base
   end
 
   error StandardError do
-    error_msg = env['sinatra.error'].message
+    error_obj = env['sinatra.error']
+    error_msg = error_obj.message
+    # Log the error for debugging
+    puts "Error in #{self.class.name}: #{error_obj.class}: #{error_msg}"
+    puts error_obj.backtrace.first(10).join("\n") if error_obj.backtrace
     error_response(error_msg, code: 'INTERNAL_ERROR', status: 500)
   end
 

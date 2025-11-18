@@ -54,8 +54,15 @@ class ChatsAPI < BaseAPI
     # Add user message
     chat_service.add_message(role: 'user', content: data[:content])
 
-    # Get all messages for AI
-    messages = chat_service.get_messages.map do |msg|
+    # Get all messages for AI, sorted so system messages come first
+    all_messages = chat_service.get_messages
+    messages = all_messages.sort_by do |msg|
+      role = msg[:role] || msg['role']
+      seq = msg[:sequence_number] || msg['sequence_number'] || 0
+      # System messages first (0), then user/assistant (1, 2)
+      role_priority = role == 'system' ? 0 : (role == 'user' ? 1 : 2)
+      [role_priority, seq]
+    end.map do |msg|
       {
         role: msg[:role] || msg['role'],
         content: msg[:content] || msg['content']
@@ -67,7 +74,8 @@ class ChatsAPI < BaseAPI
     response = ai_service.send_message(messages)
 
     if response['error']
-      error_response(response['error'], code: 'AI_ERROR', status: 500)
+      error_msg = response['error'].is_a?(Hash) ? response['error']['message'] : response['error'].to_s
+      error_response(error_msg, code: 'AI_ERROR', status: 500)
     elsif response['choices'] && response['choices'][0] && response['choices'][0]['message']
       ai_content = response['choices'][0]['message']['content']
       
@@ -80,8 +88,13 @@ class ChatsAPI < BaseAPI
         chat: chat_service.load_chat.to_h
       })
     else
-      error_response('Unexpected AI response format', code: 'AI_ERROR', status: 500)
+      error_response("Unexpected AI response format: #{response.inspect}", code: 'AI_ERROR', status: 500)
     end
+  rescue StandardError => e
+    # Log the full error for debugging
+    puts "Error in send message: #{e.class}: #{e.message}"
+    puts e.backtrace.first(5).join("\n")
+    error_response("Failed to send message: #{e.message}", code: 'INTERNAL_ERROR', status: 500)
   end
 
   # Extended dialogue generation

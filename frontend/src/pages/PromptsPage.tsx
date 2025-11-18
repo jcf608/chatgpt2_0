@@ -4,8 +4,9 @@ import { PromptSelector } from '../components/prompts/PromptSelector';
 import { PromptEditor } from '../components/prompts/PromptEditor';
 import { SlideOut } from '../components/common';
 import { Button, ErrorMessage } from '../components/common';
-import { Plus, FileText } from 'lucide-react';
+import { Plus, FileText, Copy, Check } from 'lucide-react';
 import { usePromptStore } from '../store/promptStore';
+import { useSettingsStore } from '../store/settingsStore';
 import type { Prompt } from '../api/types';
 
 export const PromptsPage: React.FC = () => {
@@ -23,8 +24,11 @@ export const PromptsPage: React.FC = () => {
     clearError,
   } = usePromptStore();
 
+  const { selectedPromptId, setSelectedPromptId } = useSettingsStore();
+
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editingPrompt, setEditingPrompt] = useState<Prompt | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     fetchPrompts();
@@ -67,6 +71,14 @@ export const PromptsPage: React.FC = () => {
     }
   };
 
+  const copyToClipboard = () => {
+    if (!selectedPrompt) return;
+    navigator.clipboard.writeText(selectedPrompt.content).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
   return (
     <AppLayout
       headerTitle="Prompts"
@@ -95,7 +107,9 @@ export const PromptsPage: React.FC = () => {
           <PromptSelector
             prompts={prompts}
             selectedPromptId={selectedPrompt?.id}
+            activePromptId={selectedPromptId}
             onSelectPrompt={handleSelectPrompt}
+            onSelectActivePrompt={setSelectedPromptId}
             isLoading={isLoading && prompts.length === 0}
           />
         </div>
@@ -110,9 +124,28 @@ export const PromptsPage: React.FC = () => {
                     <FileText className="h-5 w-5 text-primary" />
                     <h2 className="text-xl font-semibold text-text-primary">{selectedPrompt.name}</h2>
                   </div>
-                  <Button onClick={() => handleSelectPrompt(selectedPrompt)} variant="secondary">
-                    Edit
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={copyToClipboard}
+                      className="flex items-center gap-2 px-3 py-2 text-sm text-text-secondary hover:text-primary hover:bg-bg-tertiary rounded-lg transition-colors duration-default ease-in-out"
+                      title="Copy prompt content"
+                    >
+                      {copied ? (
+                        <>
+                          <Check className="h-4 w-4 text-success" />
+                          <span className="text-success">Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-4 w-4" />
+                          <span>Copy</span>
+                        </>
+                      )}
+                    </button>
+                    <Button onClick={() => handleSelectPrompt(selectedPrompt)} variant="secondary">
+                      Edit
+                    </Button>
+                  </div>
                 </div>
               </div>
               <div className="flex-1 overflow-y-auto p-6">

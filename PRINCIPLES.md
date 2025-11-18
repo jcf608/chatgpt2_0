@@ -38,6 +38,13 @@ All project documentation is organized in the `doc/` folder by category:
   - Ruby scripts are more maintainable and easier to debug
   - Better error handling and cross-platform compatibility
   - Consistent with the project's primary language
+- **Development Server Logging**: All development servers MUST pipe logs to visible locations
+  - Backend logs: `logs/backend.log` (append mode, visible during development)
+  - Frontend logs: `logs/frontend.log` (append mode, visible during development)
+  - Logs directory: `logs/` at project root (gitignored)
+  - View logs: `tail -f logs/backend.log` or `tail -f logs/frontend.log`
+  - Never run servers without log visibility (no silent background processes)
+  - Logs help debug errors, API calls, and server issues
 - **Script Organization**: All development scripts organized in `script/` directory
   - `script/utilities/` - File management, debugging, and system utilities
   - `script/manual_tests/` - Manual testing scripts (complement automated tests)

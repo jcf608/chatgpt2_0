@@ -18,9 +18,19 @@ class AIService < BaseService
   # Send message to AI (system prompts go to selected provider)
   def send_message(messages, max_tokens: 1000, temperature: 0.7)
     client = get_client
-    client.chat_completion(messages, max_tokens: max_tokens, temperature: temperature)
+    response = client.chat_completion(messages, max_tokens: max_tokens, temperature: temperature)
+    
+    # Log response for debugging
+    if response['error']
+      puts "AI Service Error: #{response['error']}"
+    end
+    
+    response
   rescue StandardError => e
-    handle_error(e, operation: 'Send message to AI')
+    puts "AI Service Exception: #{e.class}: #{e.message}"
+    puts e.backtrace.first(5).join("\n")
+    # Return error hash instead of raising
+    { 'error' => { 'message' => "Send message to AI failed: #{e.message}" } }
   end
 
   # Extended dialogue generation - multi-segment generation with word count tracking

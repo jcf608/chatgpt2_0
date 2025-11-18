@@ -80,6 +80,18 @@ class Chat < BaseModel
     raise StandardError, "Failed to load #{self.name} with id: #{id} - #{e.message}"
   end
 
+  # Convert to hash (public method for API responses)
+  def to_h
+    super.merge(
+      title: @title,
+      system_prompt_id: @system_prompt_id,
+      api_provider: @api_provider,
+      voice: @voice,
+      messages: @messages,
+      metadata: @metadata.merge(word_count: word_count)
+    )
+  end
+
   protected
 
   def load_attributes(attributes)
@@ -95,17 +107,6 @@ class Chat < BaseModel
     # Parse timestamps if they're strings
     @created_at = parse_time(attributes[:created_at]) if attributes[:created_at]
     @updated_at = parse_time(attributes[:updated_at]) if attributes[:updated_at]
-  end
-
-  def to_h
-    super.merge(
-      title: @title,
-      system_prompt_id: @system_prompt_id,
-      api_provider: @api_provider,
-      voice: @voice,
-      messages: @messages,
-      metadata: @metadata.merge(word_count: word_count)
-    )
   end
 
   def update_metadata

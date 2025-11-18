@@ -37,9 +37,9 @@ class ChatService < BaseService
   def add_message(role:, content:)
     validate_presence(@chat_id, 'chat_id')
     chat = load_chat
-    chat.add_message(role: role, content: content)
+    message = chat.add_message(role: role, content: content)
     chat.save
-    chat.get_messages.last
+    message
   rescue StandardError => e
     handle_error(e, operation: 'Add message')
   end

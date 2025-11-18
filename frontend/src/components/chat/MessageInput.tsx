@@ -6,15 +6,57 @@ interface MessageInputProps {
   onSend: (content: string) => Promise<void>;
   isLoading?: boolean;
   placeholder?: string;
+  prependedText?: string; // Text to prepend to the input (from pills)
 }
 
 export const MessageInput: React.FC<MessageInputProps> = ({
   onSend,
   isLoading = false,
   placeholder = 'Type your message...',
+  prependedText = '',
 }) => {
   const [content, setContent] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const isUserEditingRef = useRef<boolean>(false);
+
+  // Update content when prependedText changes (from pills)
+  useEffect(() => {
+    // Only auto-update if user hasn't manually edited
+    if (!isUserEditingRef.current) {
+      if (prependedText) {
+        setContent(prependedText);
+      } else {
+        // When pills are deselected, keep user content if it exists
+        // Only clear if content was empty
+        if (!content.trim()) {
+          setContent('');
+        }
+      }
+    } else if (prependedText) {
+      // If user is editing and pills are selected, prepend the new pill text
+      // But only if current content doesn't already start with it
+      if (!content.startsWith(prependedText)) {
+        setContent(`${prependedText} ${content}`.trim());
+      }
+    } else {
+      // If pills are deselected but user was editing, keep their content
+      // (content already has user's text, so no change needed)
+    }
+    isUserEditingRef.current = false;
+  }, [prependedText]);
+
+  // Track when user manually edits
+  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    isUserEditingRef.current = true;
+    setContent(e.target.value);
+  };
+
+  // Auto-focus textarea on mount
+  useEffect(() => {
+    if (textareaRef.current && !isLoading) {
+      textareaRef.current.focus();
+    }
+  }, [isLoading]);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -26,10 +68,12 @@ export const MessageInput: React.FC<MessageInputProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!content.trim() || isLoading) return;
+    // Allow sending even if content is empty (pills might be selected)
+    if (isLoading) return;
 
     const messageContent = content.trim();
     setContent('');
+    isUserEditingRef.current = false; // Reset editing flag after sending
     
     // Reset textarea height
     if (textareaRef.current) {
@@ -55,7 +99,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
           <textarea
             ref={textareaRef}
             value={content}
-            onChange={(e) => setContent(e.target.value)}
+            onChange={handleContentChange}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             disabled={isLoading}
@@ -76,7 +120,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
           type="submit"
           variant="primary"
           isLoading={isLoading}
-          disabled={!content.trim() || isLoading}
+          disabled={isLoading}
           className="h-12 px-6"
         >
           {!isLoading && <Send className="h-4 w-4" />}
