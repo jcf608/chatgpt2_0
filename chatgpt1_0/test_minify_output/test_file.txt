@@ -1,0 +1,10 @@
+This is a test file with some printable characters.
+It also contains some non-printable characters like:
+- Bell: 
+- Backspace: 
+- Tab:
+- Vertical tab: 
+- Form feed: 
+- Escape: 
+- Delete: 
+And some Unicode characters:    

@@ -8,9 +8,6 @@ Dotenv.load
 # Set up environment
 ENV['RACK_ENV'] ||= 'development'
 
-# Database configuration
-require_relative 'database'
-
 # Load application files
 Dir[File.join(__dir__, '..', 'lib', '**', '*.rb')].each { |f| require f }
 Dir[File.join(__dir__, '..', 'models', '**', '*.rb')].each { |f| require f }

@@ -1,6 +1,12 @@
 require 'sinatra/base'
 require 'json'
 
+# Mount API endpoints
+require_relative 'api/chats_api'
+require_relative 'api/messages_api'
+require_relative 'api/prompts_api'
+require_relative 'api/audio_api'
+
 class App < Sinatra::Base
   configure do
     set :bind, '0.0.0.0'
@@ -23,8 +29,11 @@ class App < Sinatra::Base
     { status: 'ok', message: 'ChatGPT v2.0 API' }.to_json
   end
 
-  # API routes will be mounted here
-  # TODO: Mount API endpoints in Phase 3
+  # Mount API endpoints
+  use ChatsAPI
+  use MessagesAPI
+  use PromptsAPI
+  use AudioAPI
 
   # Error handling
   error 404 do

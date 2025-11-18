@@ -1,0 +1,55 @@
+Here's a similar prompt based on the attached chat file, with a sexy, naked, raw, and passionate tone:
+
+# 🎨 Exported Image Prompts
+# Generated: 2025-06-13 14:00:32
+# Provider: VENICE
+============================================================
+
+# JSON Format (recommended for import):
+[
+  {
+    "title": "Feeding Frenzy",
+    "description": "A raw, passionate scene of a submissive feedee being dominated and controlled through food and feeding.",
+    "style": "Realistic",
+    "prompt": "In a dimly lit, intimate bedroom, a naked, chubby man, Sammy, is on his knees, his body glistening with sweat, his eyes filled with desperation and desire. He looks up at his dominant partner, Daddy, with a pleading expression, his lips parted, eager for command. Daddy stands tall and confident, holding a platter of decadent foods - juicy steaks, creamy pastries, and ripe fruits, his cock already hard and throbbing, ready for use. Sammy's belly is round and soft, a testament to his previous feedings, and his thighs are thick and inviting. Capture the raw, sexual tension between them as Sammy awaits his next command, his body trembling with anticipation. Use deep, sensual tones and dramatic lighting to emphasize the passion and dominance in the scene."
+  },
+  {
+    "title": "Harnessed and Helpless",
+    "description": "A scene of complete submission and control, with Sammy harnessed and forced to feed.",
+    "style": "Realistic",
+    "prompt": "Sammy is secured in a feeding harness, his body pulled taut, his belly exposed and vulnerable. The harness digs into his skin, marking him as property, as a tool for pleasure. A fresh keg of beer is attached to the harness, the nozzle pressed against his eager lips. His eyes are closed, his face a mix of ecstasy and submission as he bounces up and down, the keg's contents flowing into his mouth, his belly expanding with each bounce. Behind him, Daddy stands, his cock hard and ready, his hands gripping Sammy's blubber, controlling his movements, using him for his pleasure. Capture the raw, sexual energy of the scene, the dominance and submission, the complete control of one body by another. Use intense, dramatic lighting and a dark, moody color palette."
+  },
+  {
+    "title": "Cumming for Daddy",
+    "description": "A passionate, erotic scene of Sammy finding his release while being dominated and used by Daddy.",
+    "style": "Realistic",
+    "prompt": "Sammy is on his back, his body a rippling sea of fat, his cock hard and leaking precum. His belly undulates with each of his cock's convulsions as he cums, his body shaking and quivering with the force of his orgasm. Above him, Daddy looms, his cock deep inside Sammy's mouth, his hands gripping Sammy's blubber, controlling his movements, using his body for his own pleasure. Sammy's eyes are rolled back, his mouth open in a silent scream of ecstasy as he cums, his body a tool for Daddy's pleasure. Capture the raw, passionate energy of the scene, the complete domination of one body by another, the intense, almost violent, nature of their connection. Use high-contrast lighting and a dark, intense color palette to emphasize the passion and dominance in the scene."
+  }
+]
+
+============================================================
+# Text Format (human readable):
+
+1. Feeding Frenzy
+Description: A raw, passionate scene of a submissive feedee being dominated and controlled through food and feeding.
+Style: Realistic
+Prompt: "In a dimly lit, intimate bedroom, a naked, chubby man, Sammy, is on his knees, his body glistening with sweat, his eyes filled with desperation and desire. He looks up at his dominant partner, Daddy, with a pleading expression, his lips parted, eager for command. Daddy stands tall and confident, holding a platter of decadent foods - juicy steaks, creamy pastries, and ripe fruits, his cock already hard and throbbing, ready for use. Sammy's belly is round and soft, a testament to his previous feedings, and his thighs are thick and inviting. Capture the raw, sexual tension between them as Sammy awaits his next command, his body trembling with anticipation. Use deep, sensual tones and dramatic lighting to emphasize the passion and dominance in the scene."
+
+Command: ruby draw.rb # then import this file
+----------------------------------------
+
+2. Harnessed and Helpless
+Description: A scene of complete submission and control, with Sammy harnessed and forced to feed.
+Style: Realistic
+Prompt: "Sammy is secured in a feeding harness, his body pulled taut, his belly exposed and vulnerable. The harness digs into his skin, marking him as property, as a tool for pleasure. A fresh keg of beer is attached to the harness, the nozzle pressed against his eager lips. His eyes are closed, his face a mix of ecstasy and submission as he bounces up and down, the keg's contents flowing into his mouth, his belly expanding with each bounce. Behind him, Daddy stands, his cock hard and ready, his hands gripping Sammy's blubber, controlling his movements, using him for his pleasure. Capture the raw, sexual energy of the scene, the dominance and submission, the complete control of one body by another. Use intense, dramatic lighting and a dark, moody color palette."
+
+Command: ruby draw.rb # then import this file
+----------------------------------------
+
+3. Cumming for Daddy
+Description: A passionate, erotic scene of Sammy finding his release while being dominated and used by Daddy.
+Style: Realistic
+Prompt: "Sammy is on his back, his body a rippling sea of fat, his cock hard and leaking precum. His belly undulates with each of his cock's convulsions as he cums, his body shaking and quivering with the force of his orgasm. Above him, Daddy looms, his cock deep inside Sammy's mouth, his hands gripping Sammy's blubber, controlling his movements, using his body for his own pleasure. Sammy's eyes are rolled back, his mouth open in a silent scream of ecstasy as he cums, his body a tool for Daddy's pleasure. Capture the raw, passionate energy of the scene, the complete domination of one body by another, the intense, almost violent, nature of their connection. Use high-contrast lighting and a dark, intense color palette to emphasize the passion and dominance in the scene."
+
+Command: ruby draw.rb # then import this file
+----------------------------------------

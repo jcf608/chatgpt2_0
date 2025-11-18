@@ -1,0 +1,72 @@
+#!/usr/bin/env ruby
+
+# Add the lib directory to the load path
+$LOAD_PATH.unshift(File.expand_path('../../lib', __FILE__))
+
+require 'chat_cli'
+require 'draw_cli'
+require 'tts_cli'
+
+# Main CLI entry point
+class MainCLI
+  def initialize
+    @running = true
+  end
+  
+  def start
+    display_welcome_message
+    
+    while @running
+      display_menu
+      choice = get_user_choice
+      process_choice(choice)
+    end
+    
+    puts "Goodbye!"
+  end
+  
+  private
+  
+  def display_welcome_message
+    puts "=" * 80
+    puts "Welcome to ChatGPT CLI Tools v2"
+    puts "=" * 80
+    puts "This application provides tools for interacting with AI models,"
+    puts "generating images, and converting text to speech."
+    puts
+  end
+  
+  def display_menu
+    puts "Main Menu:"
+    puts "1. Chat with AI"
+    puts "2. Generate Images from Chat"
+    puts "3. Text-to-Speech"
+    puts "4. Exit completely"
+    puts
+  end
+  
+  def get_user_choice
+    print "> "
+    gets.chomp
+  end
+  
+  def process_choice(choice)
+    case choice
+    when '1'
+      V2::ChatCLI.new.start
+    when '2'
+      V2::DrawCLI.new.start
+    when '3'
+      V2::TTSCLI.new.start
+    when '4', 'exit', 'quit'
+      @running = false
+    else
+      puts "Invalid choice. Please try again."
+    end
+  end
+end
+
+# Start the application if this script is run directly
+if __FILE__ == $0
+  MainCLI.new.start
+end

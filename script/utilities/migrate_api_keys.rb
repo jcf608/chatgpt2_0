@@ -94,9 +94,6 @@ class ApiKeyMigrator
       OPENAI_API_KEY=#{@openai_key || ''}
       VENICE_API_KEY=#{@venice_key || ''}
       
-      # Database Configuration
-      DATABASE_URL=postgresql://localhost/chatgpt2_0_development
-      
       # Environment
       RACK_ENV=development
       
@@ -115,9 +112,6 @@ class ApiKeyMigrator
       
       OPENAI_API_KEY=your_openai_api_key_here
       VENICE_API_KEY=your_venice_api_key_here
-      
-      # Database Configuration
-      DATABASE_URL=postgresql://localhost/chatgpt2_0_development
       
       # Environment
       RACK_ENV=development

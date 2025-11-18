@@ -1,0 +1,48 @@
+# JSON Format (recommended for import):
+[
+  {
+    "title": "Feeding Frenzy",
+    "description": "A raw, passionate scene of an extremely obese, submissive feedee being dominated and controlled through food and feeding.",
+    "style": "Realistic",
+    "prompt": "In a dimly lit, intimate bedroom, a naked, extremely obese man, Sammy, is on his knees, his body glistening with sweat, his eyes filled with desperation and desire. He looks up at his dominant partner, Daddy, with a pleading expression, his lips parted, eager for command. Daddy stands tall and confident, his muscular body on full display, his cock already hard and throbbing, ready for use. He holds a platter of decadent foods - juicy steaks, creamy pastries, and ripe fruits, offering them to Sammy with a dominant smirk. Sammy's belly is massive and round, a testament to his extensive feedings, his thighs enormous and inviting. Capture the raw, sexual tension between them as Sammy awaits his next command, his body trembling with anticipation and his massive frame shaking with excitement. Use deep, sensual tones and dramatic lighting to emphasize the passion and dominance in the scene, highlighting the contrast between Daddy's lean, muscular body and Sammy's enormous, soft form."
+  },
+  {
+    "title": "Harnessed and Helpless",
+    "description": "A scene of complete submission and control, with extremely obese Sammy harnessed and forced to feed.",
+    "style": "Realistic",
+    "prompt": "Sammy, extremely obese and naked, is secured in a feeding harness, his body pulled taut, his massive belly exposed and vulnerable. The harness digs into his skin, marking him as property, as a tool for pleasure. A fresh keg of beer is attached to the harness, the nozzle pressed against his eager lips. His eyes are closed, his face a mix of ecstasy and submission as he bounces up and down, the keg's contents flowing into his mouth, his enormous belly expanding with each bounce. Behind him, Daddy stands, his cock hard and ready, his hands gripping Sammy's massive blubber, controlling his movements, using him for his pleasure. Capture the raw, sexual energy of the scene, the dominance and submission, the complete control of one body by another, emphasizing the power dynamics between Daddy's muscular frame and Sammy's enormous, helpless form. Use intense, dramatic lighting and a dark, moody color palette."
+  },
+{
+    "title": "Cumming for Daddy",
+    "description": "A passionate, erotic scene of extremely obese Sammy finding his release while being dominated and used by Daddy.",
+    "style": "Realistic",
+    "prompt": "Sammy, extremely obese and naked, is on his back, his body a rippling sea of fat, shoving a donut into his mouth; his cock hard and leaking precum through his jock strap. His massive belly undulates with each of his cock's convulsions as he cums, his body shaking and quivering with the force of his orgasm. Above him, Daddy looms, his immensely muscular body poised and ready, his cock deep inside Sammy's mouth, his hands gripping Sammy's massive blubber, controlling his movements, using his body for his own pleasure. Sammy's eyes are rolled back, his mouth open in a silent scream of ecstasy as he cums, his body a tool for Daddy's pleasure. Capture the raw, passionate energy of the scene, the complete domination of one body by another, the intense, almost violent, nature of their connection, highlighting the contrast between Daddy's control and Sammy's overwhelming, obese form. Use high-contrast lighting and a dark, intense color palette to emphasize the passion and dominance in the scene."
+  }
+]
+
+============================================================
+# Text Format (human readable):
+
+1. Feeding Frenzy
+Description: A raw, passionate scene of an extremely obese, submissive feedee being dominated and controlled through food and feeding.
+Style: Realistic
+Prompt: "In a dimly lit, intimate bedroom, a naked, extremely obese man, Sammy, is on his knees, his body glistening with sweat, his eyes filled with desperation and desire. He looks up at his dominant partner, Daddy, with a pleading expression, his lips parted, eager for command. Daddy stands tall and confident, his muscular body on full display, his cock already hard and throbbing, ready for use. He holds a platter of decadent foods - juicy steaks, creamy pastries, and ripe fruits, offering them to Sammy with a dominant smirk. Sammy's belly is massive and round, a testament to his extensive feedings, his thighs enormous and inviting. Capture the raw, sexual tension between them as Sammy awaits his next command, his body trembling with anticipation and his massive frame shaking with excitement. Use deep, sensual tones and dramatic lighting to emphasize the passion and dominance in the scene, highlighting the contrast between Daddy's lean, muscular body and Sammy's enormous, soft form."
+
+Command: ruby draw.rb # then import this file
+----------------------------------------
+
+2. Harnessed and Helpless
+Description: A scene of complete submission and control, with extremely obese Sammy harnessed and forced to feed.
+Style: Realistic
+Prompt: "Sammy, extremely obese and naked, is secured in a feeding harness, his body pulled taut, his massive belly exposed and vulnerable. The harness digs into his skin, marking him as property, as a tool for pleasure. A fresh keg of beer is attached to the harness, the nozzle pressed against his eager lips. His eyes are closed, his face a mix of ecstasy and submission as he bounces up and down, the keg's contents flowing into his mouth, his enormous belly expanding with each bounce. Behind him, Daddy stands, his cock hard and ready, his hands gripping Sammy's massive blubber, controlling his movements, using him for his pleasure. Capture the raw, sexual energy of the scene, the dominance and submission, the complete control of one body by another, emphasizing the power dynamics between Daddy's muscular frame and Sammy's enormous, helpless form. Use intense, dramatic lighting and a dark, moody color palette."
+
+Command: ruby draw.rb # then import this file
+----------------------------------------
+
+3. Cumming for Daddy
+Description: A passionate, erotic scene of extremely obese Sammy finding his release while being dominated and used by Daddy.
+Style: Realistic
+Prompt: "Sammy, extremely obese and naked, is on his back, his body a rippling sea of fat, his cock hard and leaking precum. His massive belly undulates with each of his cock's convulsions as he cums, his body shaking and quivering with the force of his orgasm. Above him, Daddy looms, his muscular body poised and ready, his cock deep inside Sammy's mouth, his hands gripping Sammy's massive blubber, controlling his movements, using his body for his own pleasure. Sammy's eyes are rolled back, his mouth open in a silent scream of ecstasy as he cums, his body a tool for Daddy's pleasure. Capture the raw, passionate energy of the scene, the complete domination of one body by another, the intense, almost violent, nature of their connection, highlighting the contrast between Daddy's control and Sammy's overwhelming, obese form. Use high-contrast lighting and a dark, intense color palette to emphasize the passion and dominance in the scene."
+
+Command: ruby draw.rb # then import this file
+----------------------------------------

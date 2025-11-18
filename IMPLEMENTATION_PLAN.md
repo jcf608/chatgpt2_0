@@ -5,7 +5,7 @@
 Complete overhaul of the ChatGPT CLI application into a modern web application using:
 - **Backend**: Sinatra (Ruby) - Lightweight, flexible web framework
 - **Frontend**: React (TypeScript) - Modern, component-based UI
-- **Database**: PostgreSQL - Robust data persistence
+- **Storage**: File-based storage - Simple, no database required
 - **Architecture**: RESTful API with separation of concerns
 
 ---
@@ -49,8 +49,7 @@ Complete overhaul of the ChatGPT CLI application into a modern web application u
 
 **Backend:**
 - Sinatra 3.0+ (Ruby web framework)
-- PostgreSQL (database)
-- Sequel ORM (database abstraction)
+- File-based storage (JSON/YAML files)
 - Rack (web server interface)
 - Puma (application server)
 
@@ -95,9 +94,8 @@ chatgpt2_0/
 │   ├── config.ru                   # Rack configuration
 │   ├── app.rb                      # Main Sinatra application
 │   ├── config/
-│   │   ├── database.yml            # Database configuration
 │   │   └── environment.rb          # Environment setup
-│   ├── models/                     # Sequel models
+│   ├── models/                     # File-based models
 │   │   ├── base_model.rb          # Base class for all models
 │   │   ├── chat.rb
 │   │   ├── message.rb
@@ -121,9 +119,10 @@ chatgpt2_0/
 │   │   │   ├── openai_client.rb
 │   │   │   └── venice_client.rb
 │   │   └── validators/
-│   ├── db/
-│   │   ├── migrations/            # Sequel migrations
-│   │   └── seeds.rb               # Seed data
+│   ├── data/                      # File storage directory
+│   │   ├── chats/                # Chat files
+│   │   ├── prompts/              # Prompt files
+│   │   └── audio/                # Audio files
 │   └── spec/                      # RSpec tests
 │       ├── spec_helper.rb
 │       ├── models/
@@ -177,8 +176,7 @@ chatgpt2_0/
 ├── script/                        # Development scripts
 │   ├── README.md                  # Script documentation
 │   ├── utilities/
-│   │   ├── setup_db.rb           # Database setup
-│   │   └── seed_data.rb          # Seed data generation
+│   │   └── setup_data.rb         # File storage setup
 │   └── manual_tests/
 │       └── test_api.rb           # Manual API testing
 │
@@ -199,18 +197,15 @@ chatgpt2_0/
 - [ ] Initialize Sinatra application structure
 - [ ] Set up Gemfile with dependencies:
   - `sinatra` (3.0+)
-  - `sequel` (PostgreSQL adapter)
-  - `pg` (PostgreSQL gem)
   - `rack-cors` (CORS handling)
   - `dotenv` (environment variables)
   - `rspec` (testing)
   - `rubocop` (linting)
 - [ ] Configure `config.ru` for Rack
-- [ ] Set up database configuration (`config/database.yml`)
 - [ ] Create environment setup (`config/environment.rb`)
-- [ ] Initialize Sequel database connection
 - [ ] Set up `.env` file for API keys
 - [ ] Create base API class with error handling
+- [ ] Set up file storage directories (`data/chats`, `data/prompts`, `data/audio`)
 
 **Files to Create:**
 ```
@@ -219,15 +214,18 @@ backend/
 ├── config.ru
 ├── app.rb
 ├── config/
-│   ├── database.yml
 │   └── environment.rb
+├── data/
+│   ├── chats/
+│   ├── prompts/
+│   └── audio/
 └── .env.example
 ```
 
 **Key Implementation:**
 - Base API class following DRY principles (error handling in base class)
 - Environment-based configuration (development, test, production)
-- Database connection pooling
+- File-based storage with JSON/YAML format
 
 ### 1.2 Frontend Setup
 
@@ -265,77 +263,45 @@ frontend/
 - Text: `#1C1C1E`, `#3A3A3C`, `#636366`, `#8E8E93`
 - Semantic: Success `#5A8F7B`, Warning `#D4A373`, Error `#B85C5C`
 
-### 1.3 Database Schema
+### 1.3 File Storage Structure
 
 **Tasks:**
-- [ ] Create Sequel migrations for:
-  - `chats` table
-  - `messages` table
-  - `prompts` table
-  - `audio_outputs` table
-  - `system_prompts` table (for base prompts)
-- [ ] Set up foreign key relationships
-- [ ] Add indexes for performance
-- [ ] Create seed data script
+- [ ] Create file storage directories:
+  - `data/chats/` - Chat conversation files (JSON format)
+  - `data/prompts/` - User prompt files (`.prompt` format)
+  - `data/audio/` - Generated audio files (`.mp3` format)
+  - `data/images/` - Generated image files (`.png` format)
+- [ ] Define file naming conventions:
+  - Chats: `YYYYMMDD_HHMMSS_dialogue_[N]words.json`
+  - Prompts: `[name].prompt`
+  - Audio: `YYYYMMDD_HHMMSS_[description].mp3`
+- [ ] Create file storage service classes
 
-**Database Schema:**
-```ruby
-# chats table
-- id (primary key)
-- title (string)
-- created_at (timestamp)
-- updated_at (timestamp)
-- system_prompt_id (foreign key)
-- api_provider (string: 'venice' | 'openai', default: 'venice')
-- voice (string: for TTS, always uses OpenAI)
-
-# messages table
-- id (primary key)
-- chat_id (foreign key)
-- role (string: 'user' | 'assistant' | 'system')
-- content (text)
-- created_at (timestamp)
-- sequence_number (integer)
-
-# prompts table
-- id (primary key)
-- name (string, unique)
-- content (text)
-- created_at (timestamp)
-- updated_at (timestamp)
-
-# system_prompts table
-- id (primary key)
-- name (string, unique)
-- content (text)
-- is_base (boolean)
-- created_at (timestamp)
-- updated_at (timestamp)
-
-# audio_outputs table
-- id (primary key)
-- chat_id (foreign key)
-- file_path (string)
-- voice (string)
-- word_count (integer)
-- duration (integer, seconds)
-- created_at (timestamp)
-
-# images table
-- id (primary key)
-- chat_id (foreign key, nullable)
-- prompt_id (foreign key, nullable)
-- file_path (string)
-- provider (string: 'openai' | 'venice')
-- prompt_used (text)
-- created_at (timestamp)
-
-# opening_lines table
-- id (primary key)
-- prompt_name (string)
-- line_text (text)
-- sequence_number (integer)
-- created_at (timestamp)
+**File Storage Format:**
+```json
+// data/chats/YYYYMMDD_HHMMSS_dialogue_[N]words.json
+{
+  "id": "unique-id",
+  "title": "Chat title",
+  "created_at": "2024-01-01T00:00:00Z",
+  "updated_at": "2024-01-01T00:00:00Z",
+  "system_prompt_id": "prompt-name",
+  "api_provider": "venice",
+  "voice": "echo",
+  "messages": [
+    {
+      "id": "msg-id",
+      "role": "user",
+      "content": "Message content",
+      "created_at": "2024-01-01T00:00:00Z",
+      "sequence_number": 1
+    }
+  ],
+  "metadata": {
+    "word_count": 1000,
+    "audio_file": "path/to/audio.mp3"
+  }
+}
 ```
 
 ---
@@ -362,8 +328,15 @@ frontend/
 **Implementation Pattern:**
 ```ruby
 # backend/models/base_model.rb
-class BaseModel < Sequel::Model
-  # Common validations, timestamps, etc.
+class BaseModel
+  # Common file operations, validations, etc.
+  def self.load(id)
+    # Load from file
+  end
+  
+  def save
+    # Save to file
+  end
 end
 
 # backend/services/base_service.rb
@@ -883,7 +856,7 @@ class ApiClient {
 
 **Tasks:**
 - [ ] Set up RSpec:
-  - Test database configuration
+  - Test file storage configuration
   - Factory methods for test data
   - Shared examples for common patterns
 - [ ] Model tests:
@@ -951,7 +924,7 @@ class ApiClient {
 
 **Tasks:**
 - [ ] Environment configuration:
-  - Production database
+  - File storage directories
   - API keys management
   - Environment variables
 - [ ] Build configuration:
@@ -962,10 +935,10 @@ class ApiClient {
   - Puma configuration
   - Nginx reverse proxy (optional)
   - SSL certificates
-- [ ] Database setup:
-  - Production migrations
+- [ ] File storage setup:
+  - Production data directories
   - Backup strategy
-  - Performance tuning
+  - File permissions
 
 ### 8.2 CI/CD
 
@@ -990,7 +963,7 @@ class ApiClient {
 2. **Delegate to base classes**: Common patterns in base classes
 3. **Use metaprogramming**: Eliminate repetitive case statements
 4. **Single responsibility**: One purpose per class/file
-5. **No hardcoding**: Discover from configuration/database
+5. **No hardcoding**: Discover from configuration files
 
 ### Error Handling
 
@@ -1022,9 +995,10 @@ class ApiClient {
 
 **Tasks:**
 - [ ] Create migration script:
-  - Import chat files from `chats/` directory
-  - Import prompts from `prompts/` directory
+  - Import chat files from `chatgpt1_0/chats/` directory
+  - Import prompts from `chatgpt1_0/prompts/` directory
   - Import audio files metadata
+  - Convert to new file format (JSON)
   - Preserve timestamps
 - [ ] Validate migrated data:
   - Check all chats imported

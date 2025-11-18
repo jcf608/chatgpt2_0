@@ -39,7 +39,7 @@ All project documentation is organized in the `doc/` folder by category:
   - Better error handling and cross-platform compatibility
   - Consistent with the project's primary language
 - **Script Organization**: All development scripts organized in `script/` directory
-  - `script/utilities/` - Database, debugging, and system utilities
+  - `script/utilities/` - File management, debugging, and system utilities
   - `script/manual_tests/` - Manual testing scripts (complement automated tests)
   - `script/examples/` - Example code and demonstrations
   - See Section 11.6 for complete details
@@ -60,9 +60,9 @@ All project documentation is organized in the `doc/` folder by category:
   - Regex is hard to read and maintain
   - Only use regex when absolutely necessary for complex pattern matching
   - When regex is required, add clear comments explaining what it does
-- **Avoid hardcoding when possible**: Discover data dynamically from configuration or database ⭐ IMPORTANT
+- **Avoid hardcoding when possible**: Discover data dynamically from configuration files ⭐ IMPORTANT
   - Hardcoded lists become stale and require code changes to extend
-  - Discover from configuration files, database, or credentials
+  - Discover from configuration files or credentials
   - Only hardcode when absolutely necessary (constants, enums that never change)
   - **Bad Example:** `[:sap, :slack, :teams].each { |service| ... }` (hardcoded list)
   - **Good Example:** `Rails.application.credentials.dig(:integrations).keys.each { |service| ... }` (discovered)
@@ -288,10 +288,10 @@ end
 - Clear extension points
 
 #### 1.3.4 Query Object Pattern
-Extract complex database queries into dedicated query objects.
+Extract complex file queries into dedicated query objects.
 
 **When to Use:**
-- Complex queries with multiple conditions
+- Complex file searches with multiple conditions
 - Queries reused across controllers/services
 - Building composable query methods
 - Need to test query logic separately
@@ -871,7 +871,7 @@ end
 - **12-month retention**: Archive workflows and related data after 12 months
 - **Hard deletes permitted**: No soft delete requirement
 - **Company deletion**: Only allowed if all workflow relationships are 12+ months old
-- **No caching needed**: PostgreSQL performance is sufficient
+- **No caching needed**: File-based storage performance is sufficient for this use case
 
 ### 2.5 Bulk Operations
 - System must support bulk operations:
@@ -1264,9 +1264,9 @@ end
 - ❌ ENV variables for API credentials (use Rails credentials)
 - ❌ Validating credentials in `initialize` (crashes on startup)
 - ❌ Hardcoded credentials (never!)
-- ❌ Database storage for API keys (use encrypted credentials)
+- ❌ File storage for API keys (use encrypted credentials)
 
-**Exception:** User-modifiable settings (not credentials) should use SystemSettings database with UI configuration.
+**Exception:** User-modifiable settings (not credentials) should use configuration files with UI configuration.
 
 ---
 
@@ -1419,7 +1419,7 @@ ai_data = generate_with_ai()  # Raises exception if fails
 **Red Flags (Stop and Test):**
 - Created 3+ new methods → Write tests now
 - Modified critical business logic → Add regression tests
-- Added new database table → Test model validations
+- Added new file storage structure → Test model validations
 - Changed existing behavior → Update and run affected tests
 - About to commit → Run full test suite
 
@@ -1680,7 +1680,7 @@ diff test_results_baseline.txt test_results_fixed.txt
 ```
 script/
 ├── README.md              # Complete documentation of all scripts
-├── utilities/             # Database, debugging, and system utilities
+├── utilities/             # File management, debugging, and system utilities
 │   ├── check_executing.rb
 │   ├── db_reset.rb
 │   ├── debug_style_guide.rb
@@ -1705,7 +1705,7 @@ script/
 **Script Categories:**
 
 **`script/utilities/`** - System maintenance and debugging
-- Database management (reset, seed)
+- File storage management (setup, cleanup)
 - Credentials management
 - Dependency installation
 - Debugging tools for specific features
@@ -2059,7 +2059,7 @@ end
 - ✅ **DO:** Make breaking changes that simplify architecture
 - ✅ **DO:** Remove deprecated patterns and code
 - ✅ **DO:** Restructure APIs and interfaces when needed
-- ✅ **DO:** Change database schemas to better represent the domain
+- ✅ **DO:** Change file storage structures to better represent the domain
 - ❌ **DON'T:** Maintain backward compatibility at the cost of clean architecture
 - ❌ **DON'T:** Keep deprecated code paths "just in case"
 - ❌ **DON'T:** Add complexity to support old patterns
@@ -2081,7 +2081,7 @@ end
 **Examples of Acceptable Breaking Changes:**
 - Removing redundant tools/methods
 - Changing MCP executor architecture
-- Restructuring database schemas
+- Restructuring file storage formats
 - Refactoring service interfaces
 - Changing API response formats
 - Removing feature flags or mode switches

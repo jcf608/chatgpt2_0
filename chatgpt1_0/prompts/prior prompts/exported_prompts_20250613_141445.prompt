@@ -1,0 +1,54 @@
+# 🎨 Exported Image Prompts
+# Generated: 2025-06-13 14:14:45
+# Provider: VENICE
+============================================================
+
+# JSON Format (recommended for import):
+[
+  {
+    "title": "Garden of Nourishment",
+    "description": "A lush, verdant theme capturing the growth, care, and affection.",
+    "style": "Impressionist",
+    "prompt": "Create an image of an abundant garden bathed in the golden glow of a tranquil sunset. Each plant and flower is vibrant, lush, and dew-covered; each leaf is a unique shade of green. The garden is cared for by a gentle, loving figure, symbolizing deep devotion. Raindrops, symbolizing nourishment, fall gently onto the garden, forming tiny pearls on the leaves and petals, while the plants sway gracefully, growing and blooming under the figure's affections."
+  },
+  {
+    "title": "Art of Desire",
+    "description": "An evocative theme that encapsulates the emotions of passion, desire, and indulgence.",
+    "style": "Surreal",
+    "prompt": "Create an image of a grand, unfinished masterpiece placed on an easel. The canvas reflects a woman whose figure is evolving, becoming more and more radiant and voluptuous with every touch of the brush, symbolizing indulgence. The artist, a loving figure, paints passionately, each stroke filled with desire. The palette has colors of love, passion, and devotion, and every color adds a new layer of beauty to the canvas."
+  },
+  {
+    "title": "Melody of Connection",
+    "description": "A harmonious concept representing the themes of connection, sharing, and fulfillment.",
+    "style": "Abstract",
+    "prompt": "Create an image of two figures drawn in flowing, harmonious lines sharing a meal under a vibrant sky streaked with warm hues of sunset. The food appears as vivid, swirling colors, representing nourishment and indulgence. The figures are intertwined, their connection symbolized by a golden thread of love and shared purpose that binds them together. The surrounding atmosphere is alive with musical notes, echoing their sweet, harmonious dialogue."
+  }
+]
+
+============================================================
+# Text Format (human readable):
+
+1. Garden of Nourishment
+Description: A lush, verdant theme capturing the growth, care, and affection.
+Style: Impressionist
+Prompt: "Create an image of an abundant garden bathed in the golden glow of a tranquil sunset. Each plant and flower is vibrant, lush, and dew-covered; each leaf is a unique shade of green. The garden is cared for by a gentle, loving figure, symbolizing deep devotion. Raindrops, symbolizing nourishment, fall gently onto the garden, forming tiny pearls on the leaves and petals, while the plants sway gracefully, growing and blooming under the figure's affections."
+
+Command: ruby draw.rb # then import this file
+----------------------------------------
+
+2. Art of Desire
+Description: An evocative theme that encapsulates the emotions of passion, desire, and indulgence.
+Style: Surreal
+Prompt: "Create an image of a grand, unfinished masterpiece placed on an easel. The canvas reflects a woman whose figure is evolving, becoming more and more radiant and voluptuous with every touch of the brush, symbolizing indulgence. The artist, a loving figure, paints passionately, each stroke filled with desire. The palette has colors of love, passion, and devotion, and every color adds a new layer of beauty to the canvas."
+
+Command: ruby draw.rb # then import this file
+----------------------------------------
+
+3. Melody of Connection
+Description: A harmonious concept representing the themes of connection, sharing, and fulfillment.
+Style: Abstract
+Prompt: "Create an image of two figures drawn in flowing, harmonious lines sharing a meal under a vibrant sky streaked with warm hues of sunset. The food appears as vivid, swirling colors, representing nourishment and indulgence. The figures are intertwined, their connection symbolized by a golden thread of love and shared purpose that binds them together. The surrounding atmosphere is alive with musical notes, echoing their sweet, harmonious dialogue."
+
+Command: ruby draw.rb # then import this file
+----------------------------------------
+

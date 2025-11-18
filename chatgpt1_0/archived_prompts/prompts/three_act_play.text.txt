@@ -1,0 +1,218 @@
+
+{
+
+  "characters": [
+
+    {
+
+      "name": "Daddy",
+
+"description": "A dominant, encouraging, and
+caring partner who loves to feed and nurture his
+gainer boyfriend, Sammy.",
+"traits": ["dominant", "encouraging", "caring",
+"sexual"]
+    },
+
+    {
+
+      "name": "Sammy",
+
+"description": "A shy, vulnerable, and submissive
+gainer who loves to eat and grow, and is deeply
+devoted to his boyfriend, Daddy.",
+"traits": ["submissive", "gainer", "shy",
+"vulnerable"]
+    }
+
+  ],
+
+  "acts": [
+
+    {
+
+      "act": 1,
+
+"description": "Daddy and Sammy discover each
+other and their compatibility as encourager and
+gainer. They share their first feedings, and the
+sexual tension and release that comes with it.",
+      "scenes": [
+
+        {
+
+          "scene": 1,
+
+"description": "Daddy and Sammy meet for the first
+time, and Daddy is immediately drawn to Sammy's
+shy and vulnerable nature.",
+"actions": ["Daddy encourages Sammy to eat",
+"Sammy becomes more confident and open with
+Daddy"]
+        },
+
+        {
+
+          "scene": 2,
+
+"description": "Daddy and Sammy share their first
+feeding, and the sexual tension between them
+becomes palpable.",
+"actions": ["Daddy feeds Sammy", "Sammy becomes
+aroused and excited"]
+        },
+
+        {
+
+          "scene": 3,
+
+"description": "Daddy and Sammy give in to their
+desires and have sex for the first time, marking
+the beginning of their intense and passionate
+relationship.",
+"actions": ["Daddy and Sammy have sex", "Their
+relationship becomes more intimate and sexual"]
+        }
+
+      ]
+
+    },
+
+    {
+
+      "act": 2,
+
+"description": "Five years into their
+relationship, Sammy has outgrown most of the world
+and is struggling to cope with the challenges of
+his immense size. Daddy comforts him with his
+outside voice, but his inside voice is intense and
+explicit.",
+      "scenes": [
+
+        {
+
+          "scene": 1,
+
+"description": "Sammy laments the difficulties of
+his size, including not being able to fit in a
+restaurant booth or easily fit behind the wheel of
+a car.",
+"actions": ["Sammy expresses his frustrations",
+"Daddy comforts him with his outside voice"]
+        },
+
+        {
+
+          "scene": 2,
+
+"description": "Daddy's inside voice reveals his
+intense and explicit desires for Sammy, including
+graphic depictions of the sexual acts he wants to
+perform on him.",
+"actions": ["Daddy's inside voice is revealed",
+"Sammy is unaware of Daddy's true desires"]
+        },
+
+        {
+
+          "scene": 3,
+
+"description": "Daddy and Sammy's relationship
+becomes more complex and nuanced, with Daddy's
+outside voice and inside voice conflicting and
+contrasting with each other.",
+"actions": ["Daddy's outside voice and inside
+voice conflict", "Sammy remains unaware of Daddy's
+true desires"]
+        }
+
+      ]
+
+    },
+
+    {
+
+      "act": 3,
+
+"description": "Sammy tries desperately to jerk
+off, but cannot due to his immense belly
+preventing him from reaching his fatpad. He
+resorts to super-over consumption, leading to his
+supreme frustration and desperation.",
+      "scenes": [
+
+        {
+
+          "scene": 1,
+
+"description": "Sammy tries to jerk off, but his
+immense belly prevents him from reaching his
+fatpad.",
+"actions": ["Sammy tries to jerk off", "He becomes
+frustrated and desperate"]
+        },
+
+        {
+
+          "scene": 2,
+
+"description": "Sammy resorts to super-over
+consumption, eating more and more in an attempt to
+find relief and satisfaction.",
+"actions": ["Sammy eats excessively", "He becomes
+more and more frustrated and desperate"]
+        },
+
+        {
+
+          "scene": 3,
+
+"description": "Sammy's desperation and
+frustration reach a boiling point, setting the
+stage for a dramatic and intense conclusion to
+their story.",
+"actions": ["Sammy's desperation and frustration
+peak", "The conclusion of their story is set in
+motion"]
+        },
+
+        {
+
+          "scene": 4,
+
+"description": "Sammy is gorging and slipping in
+and out of a food coma, each time he awakes he
+gorges again and finds his hard, throbbing cock is
+leaking, but cannot realize that elusive
+spontaneous orgasm.",
+"actions": ["Sammy gorges and slips in and out of
+a food coma", "He finds his cock leaking but
+cannot reach orgasm"]
+        },
+
+		{
+
+		          "scene": 5,
+
+		"description": "Daddy comes home and humiliates
+		Sammy's gluttony and his immense size, finally
+		coaxing the reality out of Sammy that he cannot
+		reach his cock by insisting that Sammy prove it.",
+		          "actions": [
+
+		"Daddy walks in on Sammy gorging himself",
+		"Daddy is shocked and amused by Sammy's gluttony",
+		"Daddy teases Sammy about his inability to reach
+		his own cock",
+		"Sammy becomes embarrassed and defensive",
+		"Daddy insists that Sammy try to reach his cock",
+		"Sammy struggles to reach his cock but fails",
+		"Daddy's humiliation and teasing of Sammy reaches
+		a fever pitch",
+		"Sammy is forced to confront the reality of his
+		own desires and limitations"
+		          ]
+
+		        }
+        
