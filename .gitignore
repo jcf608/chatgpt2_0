@@ -44,3 +44,38 @@ test_results*.txt
 dist/
 build/
 
+# Multimedia files (audio, images, video)
+# Ignore all audio files
+*.mp3
+*.wav
+*.aiff
+*.m4a
+*.flac
+*.ogg
+
+# Ignore all video files
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.webm
+
+# Ignore image files (except frontend assets which are SVG)
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.bmp
+*.tiff
+
+# Allow frontend SVG assets (icons/logos)
+!frontend/public/*.svg
+!frontend/src/assets/*.svg
+
+# Explicitly ignore multimedia in data directories
+backend/data/audio/
+backend/data/images/
+chatgpt1_0/audio_output/
+chatgpt1_0/illustrations/
+
