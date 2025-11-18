@@ -317,6 +317,24 @@ frontend/
 - chat_id (foreign key)
 - file_path (string)
 - voice (string)
+- word_count (integer)
+- duration (integer, seconds)
+- created_at (timestamp)
+
+# images table
+- id (primary key)
+- chat_id (foreign key, nullable)
+- prompt_id (foreign key, nullable)
+- file_path (string)
+- provider (string: 'openai' | 'venice')
+- prompt_used (text)
+- created_at (timestamp)
+
+# opening_lines table
+- id (primary key)
+- prompt_name (string)
+- line_text (text)
+- sequence_number (integer)
 - created_at (timestamp)
 ```
 
@@ -399,7 +417,20 @@ end
   - Factory pattern for provider selection (Venice default, OpenAI optional)
   - Send message to AI (system prompts go to selected provider)
   - Default to Venice.ai for chat completions
+  - **Venice-specific parameters**:
+    - `include_venice_system_prompt: false`
+    - `top_p: 0.9`
+    - `repetition_penalty: 1.1`
   - Handle streaming responses (future)
+  - **Extended dialogue generation**:
+    - Multi-segment generation
+    - Word count tracking
+    - Progress callbacks
+    - Interrupt handling
+  - **Continue conversation**:
+    - Context-aware continuation
+    - Smart prompt generation
+    - Word count management
 - [ ] `TTSService`:
   - **Always uses OpenAI** (regardless of chat provider)
   - Generate audio from text
@@ -407,10 +438,20 @@ end
   - Combine audio segments
   - Save audio files
 - [ ] `PromptService`:
-  - Load base system prompts
-  - Load user prompts
-  - Combine prompts
+  - Load base system prompts (`system_prompts.txt`)
+  - Load user prompts (`.prompt` files)
+  - Load opening lines (`.opening_lines` files)
+  - Combine prompts (base + user)
   - Manage prompt library
+  - **Prompt synopsis generation** (using Venice.ai):
+    - Analyze conversation
+    - Extract system prompts/instructions
+    - Extract character roles/personalities
+    - Extract themes and scenarios
+    - Extract writing style/format
+    - Generate concise synopsis (< 500 words)
+  - Prompt search and filtering
+  - Prompt preview/truncation
 
 **Service Pattern:**
 ```ruby
@@ -461,6 +502,16 @@ DELETE /api/v1/prompts/:id        # Delete prompt
 
 POST   /api/v1/chats/:id/audio    # Generate audio from chat
 GET    /api/v1/audio/:id          # Get audio file
+
+POST   /api/v1/chats/:id/extend   # Extended dialogue generation (target word count)
+POST   /api/v1/chats/:id/continue # Continue conversation (add words)
+POST   /api/v1/chats/:id/images   # Generate images from chat
+GET    /api/v1/chats/:id/word-count # Get word count
+
+GET    /api/v1/opening-lines      # List opening lines files
+POST   /api/v1/chats/:id/opening  # Start chat with opening line
+
+POST   /api/v1/chats/:id/synopsis # Generate prompt synopsis
 ```
 
 ### 3.2 API Implementation
@@ -604,22 +655,31 @@ class ApiClient {
 - [ ] Create `ChatWindow` component:
   - Message list with user/assistant distinction
   - Message input with send button
-  - Real-time message updates
+  - Real-time message updates (streaming responses - future enhancement)
   - Loading states during AI responses
+  - Word count display (real-time)
+  - Progress indicators for extended generation
 - [ ] Create `MessageList` component:
   - Display messages in chronological order
   - User messages on right, assistant on left
   - Timestamp display
   - Copy message functionality
+  - **Roleplay formatting**: Special display for character names (DADDY:, BARRY:, SAMMY:)
+  - Character emoji indicators
+  - Markdown rendering (code blocks, formatting)
 - [ ] Create `MessageInput` component:
   - Text area with auto-resize
   - Send button (Enter to send, Shift+Enter for new line)
-  - Character count (optional)
+  - Character count
+  - Word count preview
+  - Command recognition (`auto`, `extend`, `clear`, etc.)
 - [ ] Implement chat history:
   - List of previous chats
   - Search/filter chats
   - Delete chats
   - Load previous chat
+  - Chat preview (first message, word count, date)
+  - Sort by date, word count, name
 
 **UI Requirements (from PRINCIPLES.md):**
 - Slide-out panels for view/edit operations
@@ -631,19 +691,33 @@ class ApiClient {
 
 **Tasks:**
 - [ ] Create `PromptSelector` component:
-  - List of available prompts
-  - Search/filter prompts
+  - List of available prompts with preview
+  - Search/filter prompts (by name, content)
+  - Browse full prompt content (modal/slide-out)
   - Select prompt to add to chat
-  - Show prompt preview
+  - Show prompt preview (truncated, cleaned)
+  - Partial name matching
+  - Prompt categories/tags (enhancement)
 - [ ] Create `PromptEditor` component:
   - Create new prompts
   - Edit existing prompts
   - Delete prompts
   - Preview prompt content
+  - Prompt versioning (enhancement)
+  - Prompt templates (enhancement)
+- [ ] **Opening Lines Management**:
+  - Create `OpeningLinesSelector` component
+  - Load `.opening_lines` files
+  - Random selection functionality
+  - Auto-send to start conversation
+  - Preview opening lines
+  - Edit opening lines files
 - [ ] Integrate prompt selection with chat:
   - Add selected prompt to system message
+  - Combine base system prompt + user prompt
   - Show active prompt in chat header
   - Allow changing prompt mid-conversation
+  - Preserve API provider when loading prompts
 
 ### 5.3 Settings
 
@@ -668,6 +742,34 @@ class ApiClient {
 
 ## Phase 6: Advanced Features
 
+### 6.0 Image Generation
+
+**Tasks:**
+- [ ] Create `ImageGenerator` service:
+  - Generate images from chat content
+  - Generate images from prompts
+  - Theme extraction from chat (word frequency analysis)
+  - AI-generated image prompts (using Venice/OpenAI)
+  - Fallback prompts if API fails
+- [ ] Create `ImageGallery` component:
+  - Display generated images
+  - Image preview
+  - Download images
+  - Link images to chats
+  - Image metadata (prompt, date, provider)
+- [ ] Implement image generation:
+  - OpenAI DALL-E integration
+  - Venice image generation integration
+  - Provider switching
+  - Image download and save
+  - Organized file naming
+  - Error handling
+- [ ] **Image Generation API**:
+  - `POST /api/v1/chats/:id/images` - Generate images from chat
+  - `POST /api/v1/prompts/:id/images` - Generate images from prompt
+  - `GET /api/v1/images/:id` - Get image file
+  - `DELETE /api/v1/images/:id` - Delete image
+
 ### 6.1 Text-to-Speech
 
 **Tasks:**
@@ -676,15 +778,30 @@ class ApiClient {
   - Progress bar
   - Volume control
   - Download audio file
+  - Speed control (enhancement)
+  - Multiple voice support per conversation (enhancement)
 - [ ] Implement audio generation:
   - Generate audio from chat messages
-  - Show progress during generation
-  - Handle long conversations (chunking)
-  - Save audio files
+  - Show progress during generation (segments, chunks)
+  - Handle long conversations (intelligent chunking at punctuation)
+  - Chunk splitting (max 1500 chars, prefer sentence boundaries)
+  - Combine audio segments (ffmpeg or binary)
+  - Save audio files with timestamps
+  - Error handling with retries
+  - Timeout handling
+- [ ] **TTS Service Enhancements**:
+  - Segment extraction from chat content
+  - Handle role indicators (USER:, ASSISTANT:, DADDY:, BARRY:)
+  - Skip system messages
+  - Progress tracking (segment X of Y, chunk X of Y)
+  - Retry logic with exponential backoff
+  - Voice assignment per character (enhancement)
 - [ ] Audio management:
   - List generated audio files
   - Delete old audio files
   - Play audio in browser
+  - Audio file preview
+  - Link audio to chat files
 
 ### 6.2 Chat Export
 
@@ -693,27 +810,70 @@ class ApiClient {
   - Format: User/Assistant messages
   - Include system prompt info
   - Include timestamps
+  - Include word count
+  - Include API provider used
+  - Include prompt synopsis (if generated)
   - Download as .txt file
+  - Timestamp-based filename: `YYYYMMDD_HHMMSS_dialogue_[N]words.txt`
 - [ ] Export chat to markdown:
+  - **Multiple format detection** (emoji format, CLI format, etc.)
   - Formatted markdown
   - Code blocks preserved
+  - Proper heading structure
   - Download as .md file
+  - Preserve conversation structure
+- [ ] **Export Service**:
+  - Format conversation for save
+  - Generate metadata footer
+  - Include prompt synopsis section
+  - Handle different chat formats
 
 ### 6.3 Enhanced Features
 
 **Tasks:**
+- [ ] **Extended Dialogue Generation**:
+  - Target word count input
+  - Multi-segment generation
+  - Progress tracking (words added, segments generated)
+  - Real-time progress display
+  - Interrupt handling (stop generation)
+  - Completion options (save, keep, restore)
+  - Smart continuation prompts
+  - Character consistency maintenance
+- [ ] **Continue Conversation**:
+  - Add words to existing conversation
+  - Show current word count
+  - Optional user prompt to guide continuation
+  - Progress tracking
+  - Context-aware continuation
+- [ ] **Auto-Extend Command**:
+  - `auto [words]` command in chat
+  - Default word count (1000)
+  - Works within interactive chat
+  - Progress display
+  - Can be interrupted
+- [ ] **Word Counting Service**:
+  - Accurate word counting (excludes system messages)
+  - Real-time word count display
+  - Progress tracking for generation
+  - Word count in filenames
+  - Word count statistics
 - [ ] Chat search:
   - Search within current chat
   - Search across all chats
   - Highlight search results
+  - Advanced search (by date, word count, prompt)
 - [ ] Message actions:
   - Edit user messages (regenerate response)
   - Delete messages
   - Copy message content
+  - Regenerate assistant response
 - [ ] Conversation management:
   - Clear conversation
   - Start new chat
   - Duplicate chat
+  - Conversation folders/tags (enhancement)
+  - Conversation templates (enhancement)
 
 ---
 
