@@ -27,6 +27,24 @@ Complete overhaul of the ChatGPT CLI application into a modern web application u
 
 ## Architecture Overview
 
+### Provider Architecture
+
+**Critical Understanding:**
+- **Venice.ai**: Primary/default provider for chat completions
+  - System prompts are sent to Venice.ai
+  - Chat conversations use Venice.ai by default
+  - Users can optionally switch to OpenAI for chat
+  
+- **OpenAI**: Used exclusively for text-to-speech
+  - TTS always uses OpenAI API, regardless of chat provider
+  - Voice selection applies to OpenAI TTS
+  - Chat provider selection does NOT affect TTS provider
+
+**Key Points:**
+- System prompts → Venice.ai (or selected chat provider)
+- Chat completions → Venice.ai (default) or OpenAI (optional)
+- Text-to-speech → OpenAI (always)
+
 ### Technology Stack
 
 **Backend:**
@@ -268,8 +286,8 @@ frontend/
 - created_at (timestamp)
 - updated_at (timestamp)
 - system_prompt_id (foreign key)
-- api_provider (string: 'openai' | 'venice')
-- voice (string: for TTS)
+- api_provider (string: 'venice' | 'openai', default: 'venice')
+- voice (string: for TTS, always uses OpenAI)
 
 # messages table
 - id (primary key)
@@ -347,18 +365,22 @@ end
 ### 2.2 API Client Services
 
 **Tasks:**
-- [ ] Refactor `OpenAIClient` from v1.0:
-  - Extend `BaseApiClient`
-  - Implement chat completion
-  - Implement text-to-speech
-  - Handle rate limiting
 - [ ] Refactor `VeniceClient` from v1.0:
   - Extend `BaseApiClient`
-  - Implement chat completion
-  - Share common patterns with OpenAI client
+  - Implement chat completion (primary/default provider)
+  - System prompts sent to Venice.ai
+  - Handle rate limiting
+- [ ] Refactor `OpenAIClient` from v1.0:
+  - Extend `BaseApiClient`
+  - Implement text-to-speech ONLY (not chat completion)
+  - TTS is always via OpenAI, regardless of chat provider
+  - Handle rate limiting
 - [ ] Use metaprogramming to eliminate duplication (per PRINCIPLES.md)
 
-**Key Features:**
+**Key Architecture Points:**
+- **Venice.ai**: Default provider for chat completions and system prompts
+- **OpenAI**: Used exclusively for text-to-speech (separate from chat provider)
+- **Provider Selection**: Users can switch chat provider (Venice/OpenAI), but TTS always uses OpenAI
 - Lazy loading of API keys (fail fast if not configured)
 - Proper error messages
 - Request/response logging
@@ -374,10 +396,12 @@ end
   - Clear conversation
   - Save chat
 - [ ] `AIService`:
-  - Factory pattern for provider selection
-  - Send message to AI
+  - Factory pattern for provider selection (Venice default, OpenAI optional)
+  - Send message to AI (system prompts go to selected provider)
+  - Default to Venice.ai for chat completions
   - Handle streaming responses (future)
 - [ ] `TTSService`:
+  - **Always uses OpenAI** (regardless of chat provider)
   - Generate audio from text
   - Chunk text intelligently
   - Combine audio segments
@@ -625,16 +649,20 @@ class ApiClient {
 
 **Tasks:**
 - [ ] Create `SettingsPage` component:
-  - API provider selection (OpenAI/Venice)
-  - Voice selection for TTS
+  - Chat API provider selection (Venice default, OpenAI optional)
+  - Voice selection for TTS (always uses OpenAI)
   - TTS enable/disable toggle
-  - System prompt configuration
+  - System prompt configuration (sent to selected chat provider)
+- [ ] Clarify provider usage:
+  - Display: "Chat Provider: Venice.ai (default)" or "OpenAI"
+  - Display: "TTS Provider: OpenAI (always)"
+  - Explain that TTS always uses OpenAI regardless of chat provider
 - [ ] Persist settings:
   - Save to backend (future: user accounts)
   - Local storage for now
 - [ ] Apply settings to chat:
-  - Use selected API provider
-  - Use selected voice for audio generation
+  - Use selected chat API provider (Venice/OpenAI)
+  - TTS always uses OpenAI with selected voice
 
 ---
 
@@ -846,14 +874,14 @@ class ApiClient {
 ### Feature Parity
 
 **Checklist:**
-- [x] Chat with AI (OpenAI/Venice)
-- [x] System prompts (base + user prompts)
-- [x] Text-to-speech
-- [x] Audio generation from chats
+- [x] Chat with AI (Venice.ai default, OpenAI optional)
+- [x] System prompts (sent to Venice.ai or selected chat provider)
+- [x] Text-to-speech (always via OpenAI)
+- [x] Audio generation from chats (OpenAI TTS)
 - [x] Chat history saving
 - [x] Prompt management
-- [x] Voice selection
-- [x] API provider selection
+- [x] Voice selection (for OpenAI TTS)
+- [x] Chat provider selection (Venice/OpenAI - affects chat only, not TTS)
 
 ---
 
