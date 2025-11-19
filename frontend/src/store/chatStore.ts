@@ -1,12 +1,14 @@
 import { create } from 'zustand';
 import type { Chat, Message } from '../api/types';
 import { apiClient } from '../api/client';
+import { useToastStore } from './toastStore';
 
 interface ChatState {
   chats: Chat[];
   currentChat: Chat | null;
   isLoading: boolean;
   error: string | null;
+  htmlErrorContent: string | null; // HTML content from Venice.ai errors
   
   // Actions
   fetchChats: () => Promise<void>;
@@ -15,6 +17,7 @@ interface ChatState {
   deleteChat: (id: string) => Promise<void>;
   sendMessage: (chatId: string, content: string) => Promise<void>;
   clearError: () => void;
+  clearHtmlError: () => void;
   setCurrentChat: (chat: Chat | null) => void;
 }
 
@@ -23,6 +26,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   currentChat: null,
   isLoading: false,
   error: null,
+  htmlErrorContent: null,
 
   fetchChats: async () => {
     set({ isLoading: true, error: null });
@@ -75,7 +79,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   sendMessage: async (chatId: string, content: string) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: null, htmlErrorContent: null });
     try {
       await apiClient.sendMessage(chatId, { content });
       // Refresh the current chat to get updated messages
@@ -84,12 +88,33 @@ export const useChatStore = create<ChatState>((set, get) => ({
       }
       // Refresh chats list to update metadata
       await get().fetchChats();
-    } catch (error) {
-      set({ error: error instanceof Error ? error.message : 'Failed to send message', isLoading: false });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to send message';
+      set({ error: errorMessage, isLoading: false });
+      
+      // Check if error contains HTML content (from Axios error response)
+      let htmlContent: string | null = null;
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: { error?: { details?: { html_content?: string } } } } };
+        htmlContent = axiosError.response?.data?.error?.details?.html_content || null;
+        if (htmlContent) {
+          set({ htmlErrorContent: htmlContent });
+        }
+      }
+      
+      // Show toast notification for Venice.ai errors
+      const toastStore = useToastStore.getState();
+      if (errorMessage.includes('Venice.ai') || errorMessage.includes('AI_SERVICE_ERROR') || errorMessage.includes('AI_ERROR')) {
+        toastStore.addToast(htmlContent ? 'Venice.ai returned an HTML error. Click to view details.' : errorMessage, 'error', 8000);
+      } else {
+        toastStore.addToast(errorMessage, 'error', 5000);
+      }
     }
   },
 
   clearError: () => set({ error: null }),
+  
+  clearHtmlError: () => set({ htmlErrorContent: null }),
 
   setCurrentChat: (chat: Chat | null) => set({ currentChat: chat }),
 }));

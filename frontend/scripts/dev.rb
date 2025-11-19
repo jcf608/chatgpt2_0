@@ -27,14 +27,14 @@ end
 # Wait a moment for ports to be released
 sleep 1
 
-# Start backend server
+# Start backend server (using Puma directly to avoid Rack's automatic middleware)
 puts "Starting backend server (port 4567)..."
 # Get project root (go up from frontend/scripts to project root)
 script_dir = File.dirname(__FILE__)
 project_root = File.expand_path('../..', script_dir)
 backend_dir = File.join(project_root, 'backend')
 backend_pid = spawn(
-  "sh", "-c", "cd '#{backend_dir}' && PORT=4567 bundle exec rackup -p 4567",
+  "sh", "-c", "cd '#{backend_dir}' && PORT=4567 bundle exec puma config.ru -p 4567 -e development",
   out: [BACKEND_LOG, 'a'],
   err: [BACKEND_LOG, 'a'],
   pgroup: true

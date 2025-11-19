@@ -23,7 +23,13 @@ class Chat < BaseModel
 
     Dir.glob(File.join(storage_directory, '*.json')).map do |file|
       id = File.basename(file, '.json')
-      load(id)
+      begin
+        load(id)
+      rescue StandardError => e
+        # Log error but continue loading other chats
+        puts "Warning: Failed to load chat #{id}: #{e.message}"
+        nil
+      end
     end.compact.sort_by { |chat| chat.created_at }.reverse
   rescue StandardError => e
     raise StandardError, "Failed to list chats: #{e.message}"
@@ -69,12 +75,20 @@ class Chat < BaseModel
     "#{timestamp}_dialogue_#{words}words.json"
   end
 
-  # Override load to handle JSON properly with symbol keys
+  # Override load to handle JSON properly with symbol keys and encoding
   def self.load(id)
     file_path = file_path_for(id)
     return nil unless File.exist?(file_path)
 
-    data = JSON.parse(File.read(file_path), symbolize_names: true)
+    # Read file with UTF-8 encoding, handling invalid bytes gracefully
+    file_content = begin
+      File.read(file_path, encoding: 'UTF-8:UTF-8')
+    rescue Encoding::InvalidByteSequenceError, ArgumentError
+      # If UTF-8 fails, read as binary and force UTF-8 encoding
+      File.binread(file_path).force_encoding('UTF-8').encode('UTF-8', invalid: :replace, undef: :replace)
+    end
+
+    data = JSON.parse(file_content, symbolize_names: true)
     new(data)
   rescue StandardError => e
     raise StandardError, "Failed to load #{self.name} with id: #{id} - #{e.message}"

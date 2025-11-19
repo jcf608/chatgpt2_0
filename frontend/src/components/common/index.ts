@@ -4,4 +4,5 @@ export { LoadingSpinner } from './LoadingSpinner';
 export { Modal } from './Modal';
 export { SlideOut } from './SlideOut';
 export { ErrorMessage } from './ErrorMessage';
+export { ToastContainer } from './Toast';
 

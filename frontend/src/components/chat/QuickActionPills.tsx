@@ -45,6 +45,12 @@ export const QUICK_ACTIONS: QuickAction[] = [
     message: 'Continue the dialogue naturally, building on the previous exchange. Maintain character consistency and develop the scene further with rich detail.',
     icon: <MessageSquare className="h-3 w-3" />,
   },
+  {
+    id: '8-exchanges',
+    label: '8 Exchanges',
+    message: 'Continue the conversation with fresh, varied phrasing. Avoid repetitious phrasing and overly long detailed passages. Keep it engaging and dynamic.',
+    icon: <MessageSquare className="h-3 w-3" />,
+  },
 ];
 
 interface QuickActionPillsProps {
@@ -82,9 +88,12 @@ export const QuickActionPills: React.FC<QuickActionPillsProps> = ({
     // Build combined message from selected actions
     const selectedActions = QUICK_ACTIONS.filter((action) => newSelected.has(action.id));
     const combinedMessage = selectedActions.map((action) => action.message).join(' ');
+    
+    // Wrap the combined message in square brackets
+    const wrappedMessage = combinedMessage ? `[${combinedMessage}]` : '';
 
     // Notify parent of selection change
-    onSelectionChange(Array.from(newSelected), combinedMessage);
+    onSelectionChange(Array.from(newSelected), wrappedMessage);
   };
 
   return (

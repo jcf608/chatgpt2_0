@@ -3,11 +3,39 @@ require_relative '../models/chat'
 require_relative '../services/chat_service'
 require_relative '../services/ai_service'
 require_relative '../services/prompt_service'
+require 'fileutils'
 
 # ChatsAPI - RESTful API for chat management
 # Endpoints: GET /api/v1/chats, POST /api/v1/chats, GET /api/v1/chats/:id, DELETE /api/v1/chats/:id
 
 class ChatsAPI < BaseAPI
+  # Helper method to safely log to file (inherited from BaseAPI, but ensure it's available)
+  def safe_log(message, level = 'INFO')
+    begin
+      log_file = File.join(File.dirname(__FILE__), '..', '..', 'logs', 'backend.log')
+      FileUtils.mkdir_p(File.dirname(log_file)) unless File.directory?(File.dirname(log_file))
+      File.open(log_file, 'a') do |f|
+        f.puts "[#{Time.now.iso8601}] [#{level}] #{message}"
+      end
+    rescue => e
+      # If even file logging fails, silently continue
+    end
+  end
+  
+  # Log all requests
+  before do
+    begin
+      log_file = File.join(File.dirname(__FILE__), '..', '..', 'logs', 'backend.log')
+      FileUtils.mkdir_p(File.dirname(log_file)) unless File.directory?(File.dirname(log_file))
+      File.open(log_file, 'a') do |f|
+        f.puts "[#{Time.now.iso8601}] [INFO] REQUEST: #{request.request_method} #{request.path_info}"
+        f.puts "[#{Time.now.iso8601}] [INFO] Params: #{params.inspect}"
+      end
+    rescue => e
+      # Ignore
+    end
+  end
+  
   # List all chats
   get '/api/v1/chats' do
     chats = Chat.all
@@ -45,56 +73,244 @@ class ChatsAPI < BaseAPI
 
   # Send message to AI
   post '/api/v1/chats/:id/send' do
-    data = parse_json_body
-    validate_required(data, :content)
-
-    chat_service = ChatService.new(params[:id])
-    chat = chat_service.load_chat
-
-    # Add user message
-    chat_service.add_message(role: 'user', content: data[:content])
-
-    # Get all messages for AI, sorted so system messages come first
-    all_messages = chat_service.get_messages
-    messages = all_messages.sort_by do |msg|
-      role = msg[:role] || msg['role']
-      seq = msg[:sequence_number] || msg['sequence_number'] || 0
-      # System messages first (0), then user/assistant (1, 2)
-      role_priority = role == 'system' ? 0 : (role == 'user' ? 1 : 2)
-      [role_priority, seq]
-    end.map do |msg|
-      {
-        role: msg[:role] || msg['role'],
-        content: msg[:content] || msg['content']
-      }
+    # Log immediately at the start - even before any processing
+    begin
+      log_file = File.join(File.dirname(__FILE__), '..', '..', 'logs', 'backend.log')
+      FileUtils.mkdir_p(File.dirname(log_file)) unless File.directory?(File.dirname(log_file))
+      File.open(log_file, 'a') do |f|
+        f.puts "[#{Time.now.iso8601}] [INFO] === SEND MESSAGE START ==="
+        f.puts "[#{Time.now.iso8601}] [INFO] Chat ID: #{params[:id]}"
+        f.puts "[#{Time.now.iso8601}] [INFO] Request method: #{request.request_method}"
+        f.puts "[#{Time.now.iso8601}] [INFO] Request path: #{request.path_info}"
+      end
+    rescue => log_err
+      # Ignore logging errors
     end
+    
+    safe_log("=== SEND MESSAGE START ===")
+    safe_log("Chat ID: #{params[:id]}")
+    begin
+      data = parse_json_body
+      safe_log("Parsed data: #{data.inspect}")
+      validate_required(data, :content)
+      safe_log("Validation passed")
 
-    # Send to AI
-    ai_service = AIService.new(provider: chat.api_provider)
-    response = ai_service.send_message(messages)
+      chat_service = ChatService.new(params[:id])
+      safe_log("ChatService created")
+      chat = chat_service.load_chat
+      safe_log("Chat loaded: #{chat.id}")
 
-    if response['error']
-      error_msg = response['error'].is_a?(Hash) ? response['error']['message'] : response['error'].to_s
-      error_response(error_msg, code: 'AI_ERROR', status: 500)
-    elsif response['choices'] && response['choices'][0] && response['choices'][0]['message']
-      ai_content = response['choices'][0]['message']['content']
+      # Validate and add user message
+      user_content = data[:content].to_s.strip
+      safe_log("User content: #{user_content.inspect}")
+      if user_content.empty?
+        safe_log("ERROR: User content is empty!", 'ERROR')
+        halt 400, error_response("Message content cannot be empty", code: 'VALIDATION_ERROR', status: 400)
+      end
+      safe_log("Adding user message...")
+      chat_service.add_message(role: 'user', content: user_content)
+      safe_log("User message added")
+
+      # Get all messages for AI - just like the old code, send all messages including system prompt
+      # Sort by sequence_number to ensure correct chronological order
+      safe_log("Getting messages...")
+      all_messages = chat_service.get_messages
+      safe_log("Got #{all_messages.length} messages")
       
-      # Add AI response to chat
-      message = chat_service.add_message(role: 'assistant', content: ai_content)
+      # Sort by sequence_number to ensure chronological order (system, user, assistant, user, assistant, ...)
+      sorted_messages = all_messages.sort_by { |msg| msg[:sequence_number] || msg['sequence_number'] || 0 }
       
-      success_response({
-        message: message,
-        ai_response: ai_content,
-        chat: chat_service.load_chat.to_h
-      })
-    else
-      error_response("Unexpected AI response format: #{response.inspect}", code: 'AI_ERROR', status: 500)
-    end
-  rescue StandardError => e
-    # Log the full error for debugging
-    puts "Error in send message: #{e.class}: #{e.message}"
-    puts e.backtrace.first(5).join("\n")
-    error_response("Failed to send message: #{e.message}", code: 'INTERNAL_ERROR', status: 500)
+      messages = sorted_messages.map do |msg|
+        {
+          role: msg[:role] || msg['role'],
+          content: msg[:content] || msg['content']
+        }
+      end
+
+      # Send to AI
+      safe_log("Creating AI service with provider: #{chat.api_provider}")
+      begin
+        ai_service = AIService.new(provider: chat.api_provider)
+        safe_log("Sending to AI...")
+        safe_log("Messages being sent: #{messages.inspect[0..500]}")
+        response = ai_service.send_message(messages)
+        safe_log("AI response received: #{response.keys.inspect}")
+      rescue => ai_service_err
+        safe_log("ERROR in AI service call: #{ai_service_err.class}: #{ai_service_err.message}", 'ERROR')
+        safe_log("  Backtrace: #{ai_service_err.backtrace.first(10).join("\n")}", 'ERROR')
+        raise ai_service_err
+      end
+      
+      # Log full Venice response
+      safe_log("=" * 80)
+      safe_log("VENICE RESPONSE IN CHATS_API:")
+      begin
+        require 'json'
+        safe_log(JSON.pretty_generate(response))
+      rescue => e
+        safe_log("Could not pretty print: #{e.message}")
+        safe_log(response.inspect)
+      end
+      safe_log("=" * 80)
+
+      if response['error']
+        error_data = response['error'].is_a?(Hash) ? response['error'] : { 'message' => response['error'].to_s }
+        error_msg = error_data['message'] || 'An error occurred'
+        
+        # Check if it's a Venice.ai server error with HTML content
+        if error_data['is_html'] && error_data['html_content']
+          halt 503, error_response(
+            error_msg,
+            code: 'AI_SERVICE_ERROR',
+            details: { html_content: error_data['html_content'] },
+            status: 503
+          )
+        elsif error_msg.include?('500') || error_msg.include?('Internal server error')
+          halt 503, error_response(
+            "Venice.ai API is currently experiencing issues. Please try again in a moment. Error: #{error_msg}",
+            code: 'AI_SERVICE_ERROR',
+            status: 503
+          )
+        else
+          halt 500, error_response(error_msg, code: 'AI_ERROR', status: 500)
+        end
+      elsif response['choices'] && response['choices'][0] && response['choices'][0]['message']
+        message_obj = response['choices'][0]['message']
+        
+        # Log response structure for debugging
+        safe_log("Response structure check:")
+        safe_log("  response['choices'] exists: #{!response['choices'].nil?}")
+        safe_log("  response['choices'][0] exists: #{!response['choices'][0].nil?}") if response['choices']
+        safe_log("  response['choices'][0]['message'] exists: #{!response['choices'][0]['message'].nil?}") if response['choices'] && response['choices'][0]
+        
+        if message_obj.nil?
+          safe_log("ERROR: message_obj is nil!", 'ERROR')
+          halt 500, {
+            success: false,
+            error: {
+              message: "Venice response has no message object",
+              code: 'AI_ERROR',
+              details: { response_structure: response.keys.inspect }
+            },
+            timestamp: Time.now.iso8601
+          }.to_json
+        end
+        
+        ai_content = message_obj['content']
+        
+        # If content is empty, try reasoning_content as fallback (Venice.ai sometimes uses this)
+        if (ai_content.nil? || ai_content.to_s.strip.empty?) && message_obj['reasoning_content']
+          safe_log("Content is empty, using reasoning_content as fallback")
+          ai_content = message_obj['reasoning_content']
+        end
+        
+        # If still empty, try combining content and reasoning_content
+        if (ai_content.nil? || ai_content.to_s.strip.empty?)
+          content_part = message_obj['content'].to_s.strip
+          reasoning_part = message_obj['reasoning_content'].to_s.strip if message_obj['reasoning_content']
+          if !content_part.empty? && !reasoning_part.nil? && !reasoning_part.empty?
+            ai_content = "#{content_part}\n\n#{reasoning_part}"
+            safe_log("Combined content and reasoning_content")
+          elsif !reasoning_part.nil? && !reasoning_part.empty?
+            ai_content = reasoning_part
+            safe_log("Using reasoning_content only")
+          end
+        end
+        
+        # Debug logging
+        safe_log("AI Response Debug:")
+        safe_log("  response keys: #{response.keys.inspect}")
+        safe_log("  choices[0] keys: #{response['choices'][0].keys.inspect if response['choices'][0]}")
+        safe_log("  message keys: #{message_obj.keys.inspect}")
+        safe_log("  ai_content: #{ai_content.inspect}")
+        safe_log("  ai_content class: #{ai_content.class}")
+        safe_log("  ai_content to_s: #{ai_content.to_s.inspect}")
+        
+        # Validate AI content is not empty
+        if ai_content.nil? || ai_content.to_s.strip.empty?
+          available_keys = message_obj.keys.join(', ')
+          content_val = message_obj['content']
+          reasoning_val = message_obj['reasoning_content']
+          
+          # Log to file directly as backup
+          begin
+            log_data = {
+              timestamp: Time.now.iso8601,
+              available_keys: available_keys,
+              content: content_val,
+              reasoning_content: reasoning_val ? reasoning_val[0..500] : nil,
+              full_message_obj: message_obj,
+              full_response: response
+            }
+            log_file = File.join(File.dirname(__FILE__), '..', '..', 'logs', 'empty_content_error.json')
+            FileUtils.mkdir_p(File.dirname(log_file)) unless File.directory?(File.dirname(log_file))
+            require 'json'
+            File.write(log_file, JSON.pretty_generate(log_data))
+            safe_log("Error details written to: #{log_file}")
+          rescue => file_err
+            safe_log("Could not write error log: #{file_err.message}", 'ERROR')
+          end
+          
+          error_msg = "Venice.ai returned an empty response. The AI service did not generate any content. Please try again or check logs/empty_content_error.json for details."
+          
+          safe_log("ERROR: AI content is empty or nil!", 'ERROR')
+          safe_log("  Available keys: #{available_keys}", 'ERROR')
+          safe_log("  Content: #{content_val.inspect}", 'ERROR')
+          safe_log("  Reasoning: #{reasoning_val ? reasoning_val[0..100].inspect : 'nil'}", 'ERROR')
+          
+          # Log the error details before raising
+          safe_log("About to raise empty response error", 'ERROR')
+          safe_log("  Error message: #{error_msg}", 'ERROR')
+          
+          # Raise a custom exception so the error handler can catch it properly
+          venice_id = begin
+            response['id']
+          rescue => id_err
+            safe_log("Could not get venice_id: #{id_err.message}", 'ERROR')
+            nil
+          end
+          
+          # Create a custom error with all the details
+          empty_response_error = StandardError.new(error_msg)
+          empty_response_error.define_singleton_method(:venice_response_id) { venice_id }
+          empty_response_error.define_singleton_method(:available_keys) { available_keys }
+          empty_response_error.define_singleton_method(:has_content) { !content_val.nil? && !content_val.to_s.empty? }
+          empty_response_error.define_singleton_method(:has_reasoning) { !reasoning_val.nil? && !reasoning_val.to_s.empty? }
+          empty_response_error.define_singleton_method(:error_code) { 'AI_EMPTY_RESPONSE' }
+          
+          safe_log("Raising empty_response_error: #{empty_response_error.class}: #{empty_response_error.message}", 'ERROR')
+          raise empty_response_error
+        end
+        
+        # Add AI response to chat (ensure content is a non-empty string)
+        final_content = ai_content.to_s.strip
+        if final_content.empty?
+          safe_log("ERROR: Final content is empty after to_s.strip!", 'ERROR')
+          halt 500, error_response("AI returned empty response after processing", code: 'AI_ERROR', status: 500)
+        end
+        message = chat_service.add_message(role: 'assistant', content: final_content)
+        
+        success_response({
+          message: message,
+          ai_response: ai_content,
+          chat: chat_service.load_chat.to_h
+        })
+      else
+        safe_log("ERROR: Unexpected AI response format", 'ERROR')
+        halt 500, error_response("Unexpected AI response format: #{response.inspect}", code: 'AI_ERROR', status: 500)
+      end
+      rescue StandardError => e
+        # Log the full error for debugging
+        error_msg = "Error in send message: #{e.class}: #{e.message}"
+        safe_log("=== ERROR CAUGHT IN CHATS_API ===", 'ERROR')
+        safe_log(error_msg, 'ERROR')
+        safe_log(e.backtrace.first(15).join("\n"), 'ERROR')
+        safe_log("=== END ERROR ===", 'ERROR')
+        
+        # Re-raise the exception so the Sinatra error handlers can process it
+        # This ensures env['sinatra.error'] is properly set
+        raise e
+      end
   end
 
   # Extended dialogue generation

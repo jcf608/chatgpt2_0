@@ -72,5 +72,16 @@ class PromptsAPI < BaseAPI
       opening_lines: opening_lines
     })
   end
+
+  # Get base system prompt (Developer Mode jailbreak)
+  get '/api/v1/prompts/system/base' do
+    prompt_service = PromptService.new
+    base_prompt = prompt_service.load_base_prompt
+    
+    success_response({
+      content: base_prompt,
+      source: 'system_prompts.txt'
+    })
+  end
 end
 

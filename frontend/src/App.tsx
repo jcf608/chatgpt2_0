@@ -4,6 +4,7 @@ import { Dashboard } from './pages/Dashboard';
 import { ChatsPage } from './pages/ChatsPage';
 import { PromptsPage } from './pages/PromptsPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { ToastContainer } from './components/common/Toast';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         <Route path="/prompts" element={<PromptsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Routes>
+      <ToastContainer />
     </BrowserRouter>
   );
 }

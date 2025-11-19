@@ -3,6 +3,7 @@ import { AppLayout } from '../components/layout/AppLayout';
 import { ChatWindow } from '../components/chat/ChatWindow';
 import { ChatHistory } from '../components/chat/ChatHistory';
 import { Button, ErrorMessage } from '../components/common';
+import { HtmlErrorModal } from '../components/common/HtmlErrorModal';
 import { Plus, FileText } from 'lucide-react';
 import { useChatStore } from '../store/chatStore';
 import { useSettingsStore } from '../store/settingsStore';
@@ -16,6 +17,7 @@ export const ChatsPage: React.FC = () => {
     currentChat,
     isLoading,
     error,
+    htmlErrorContent,
     fetchChats,
     fetchChat,
     createChat,
@@ -23,6 +25,7 @@ export const ChatsPage: React.FC = () => {
     sendMessage,
     setCurrentChat,
     clearError,
+    clearHtmlError,
   } = useChatStore();
 
   const { apiProvider, selectedPromptId } = useSettingsStore();
@@ -91,36 +94,69 @@ export const ChatsPage: React.FC = () => {
       chatId = currentChat.id;
     }
 
-    // If this is the first message, add system prompts silently
-    // System prompt (from system_prompt_id) must be FIRST, then selected prompt
-    const isFirstMessage = !currentChat || currentChat.messages.length === 0;
-    if (isFirstMessage) {
-      // 1. FIRST: Add system prompt (from chat.system_prompt_id) if it exists
-      if (chat.system_prompt_id) {
+    // If this is the first user message, add system prompts silently
+    // Check if there are any user or assistant messages (not just system messages)
+    const hasUserOrAssistantMessages = chat.messages.some(
+      (msg) => msg.role === 'user' || msg.role === 'assistant'
+    );
+    const isFirstUserMessage = !hasUserOrAssistantMessages;
+    
+    if (isFirstUserMessage) {
+      // Check if system prompts already exist
+      const hasSystemMessages = chat.messages.some((msg) => msg.role === 'system');
+      
+      // Only add system prompts if they don't already exist
+      if (!hasSystemMessages) {
+        const systemPromptParts: string[] = [];
+
+        // 1. FIRST: Get base system prompt (Developer Mode jailbreak from system_prompts.txt)
         try {
-          const systemPrompt = await apiClient.getPrompt(chat.system_prompt_id);
-          if (systemPrompt) {
-            await apiClient.addMessage(chatId, {
-              role: 'system',
-              content: systemPrompt.content,
-            });
+          const baseSystemPrompt = await apiClient.getBaseSystemPrompt();
+          if (baseSystemPrompt.trim()) {
+            systemPromptParts.push(baseSystemPrompt);
           }
         } catch (error) {
-          console.error('Failed to load system prompt:', error);
+          console.error('Failed to load base system prompt:', error);
         }
-      }
 
-      // 2. SECOND: Add selected prompt (from settings) if it exists
-      if (selectedPrompt) {
-        await apiClient.addMessage(chatId, {
-          role: 'system',
-          content: selectedPrompt.content,
-        });
+        // 2. SECOND: Get system prompt (from chat.system_prompt_id) if it exists
+        if (chat.system_prompt_id) {
+          try {
+            const systemPrompt = await apiClient.getPrompt(chat.system_prompt_id);
+            if (systemPrompt && systemPrompt.content.trim()) {
+              systemPromptParts.push(systemPrompt.content);
+            }
+          } catch (error) {
+            console.error('Failed to load system prompt:', error);
+          }
+        }
+
+        // 3. THIRD: Add selected prompt (from settings) if it exists
+        if (selectedPrompt && selectedPrompt.content.trim()) {
+          systemPromptParts.push(selectedPrompt.content);
+        }
+
+        // 4. Send as a single concatenated system message if we have any prompts
+        if (systemPromptParts.length > 0) {
+          const combinedSystemPrompt = systemPromptParts.join('\n\n');
+          if (combinedSystemPrompt.trim()) {
+            await apiClient.addMessage(chatId, {
+              role: 'system',
+              content: combinedSystemPrompt,
+            });
+          }
+        }
       }
     }
 
-    // Send the user's message
-    await sendMessage(chatId, content);
+    // Send the user's message (pill-only messages with brackets are valid)
+    const trimmedContent = content.trim();
+    if (trimmedContent) {
+      await sendMessage(chatId, trimmedContent);
+    } else {
+      console.warn('Attempted to send empty message');
+      return;
+    }
     
     // Refresh word count after sending
     await fetchChat(chatId);
@@ -191,6 +227,14 @@ export const ChatsPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* HTML Error Modal */}
+      <HtmlErrorModal
+        isOpen={!!htmlErrorContent}
+        onClose={clearHtmlError}
+        htmlContent={htmlErrorContent || ''}
+        errorMessage={error || undefined}
+      />
     </AppLayout>
   );
 };

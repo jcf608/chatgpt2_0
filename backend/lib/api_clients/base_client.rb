@@ -123,7 +123,13 @@ class BaseApiClient
         error_msg += "Page title: #{title_match[1]} " if title_match
       end
       error_msg += "Response preview: #{response.body[0..300]}"
-      return { 'error' => { 'message' => error_msg } }
+      return { 
+        'error' => { 
+          'message' => error_msg,
+          'html_content' => response.body,
+          'is_html' => true
+        } 
+      }
     end
 
     parsed = JSON.parse(response.body)

@@ -68,10 +68,16 @@ export const MessageInput: React.FC<MessageInputProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Allow sending even if content is empty (pills might be selected)
     if (isLoading) return;
 
+    // Get the final message content (includes pill text if selected, wrapped in brackets)
     const messageContent = content.trim();
+    
+    // Allow sending if content exists (pill-only messages with brackets are valid)
+    if (!messageContent) {
+      return;
+    }
+
     setContent('');
     isUserEditingRef.current = false; // Reset editing flag after sending
     

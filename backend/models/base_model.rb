@@ -33,7 +33,7 @@ class BaseModel
   def save
     @updated_at = Time.now
     ensure_directory_exists
-    File.write(file_path, to_json)
+    File.write(file_path, to_json, encoding: 'UTF-8')
     self
   rescue StandardError => e
     raise StandardError, "Failed to save #{self.class.name} - #{e.message}"

@@ -42,8 +42,18 @@ class ApiClient {
           // Server responded with error
           const apiError = error.response.data;
           if (apiError?.error) {
-            throw new Error(apiError.error.message || 'An error occurred');
+            // Extract the full error message from Venice.ai or other API errors
+            const errorMessage = apiError.error.message || 'An error occurred';
+            // Create a custom error that preserves the full API error structure
+            const customError = new Error(errorMessage) as Error & { 
+              response?: { data?: { error?: { details?: { html_content?: string } } } };
+            };
+            // Preserve the original response for HTML content extraction
+            customError.response = error.response as any;
+            throw customError;
           }
+          // Fallback if error structure is different
+          throw new Error(`Request failed with status ${error.response.status}`);
         } else if (error.request) {
           // Request made but no response
           throw new Error('Network error: Could not reach server');
@@ -51,7 +61,6 @@ class ApiClient {
           // Something else happened
           throw new Error(error.message || 'An unexpected error occurred');
         }
-        return Promise.reject(error);
       }
     );
   }
@@ -180,6 +189,13 @@ class ApiClient {
       `/api/v1/opening-lines?prompt_id=${promptId}`
     );
     return response.data.data || [];
+  }
+
+  async getBaseSystemPrompt(): Promise<string> {
+    const response = await this.client.get<ApiResponse<{ content: string; source: string }>>(
+      '/api/v1/prompts/system/base'
+    );
+    return response.data.data?.content || '';
   }
 
   // Audio API

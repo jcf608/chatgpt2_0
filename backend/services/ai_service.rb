@@ -1,12 +1,25 @@
 require_relative 'base_service'
 require_relative '../lib/api_clients/venice_client'
 require_relative '../lib/api_clients/openai_client'
+require 'fileutils'
 
 # AIService - Factory pattern for AI provider selection
 # Default: Venice.ai for chat completions
 # OpenAI: Optional for chat, but NOT used (TTS only)
 
 class AIService < BaseService
+  # Helper method to safely log to file
+  def safe_log(message, level = 'INFO')
+    begin
+      log_file = File.join(File.dirname(__FILE__), '..', '..', 'logs', 'backend.log')
+      FileUtils.mkdir_p(File.dirname(log_file)) unless File.directory?(File.dirname(log_file))
+      File.open(log_file, 'a') do |f|
+        f.puts "[#{Time.now.iso8601}] [#{level}] #{message}"
+      end
+    rescue => e
+      # If even file logging fails, silently continue
+    end
+  end
   DEFAULT_PROVIDER = 'venice'
   AVAILABLE_PROVIDERS = %w[venice openai].freeze
 
@@ -17,18 +30,64 @@ class AIService < BaseService
 
   # Send message to AI (system prompts go to selected provider)
   def send_message(messages, max_tokens: 1000, temperature: 0.7)
+    # Log the REQUEST being sent to Venice
+    safe_log("=" * 80)
+    safe_log("VENICE.AI REQUEST:")
+    safe_log("=" * 80)
+    safe_log("Provider: #{@provider}")
+    safe_log("Messages count: #{messages.length}")
+    safe_log("Max tokens: #{max_tokens}")
+    safe_log("Temperature: #{temperature}")
+    safe_log("-" * 80)
+    messages.each_with_index do |msg, idx|
+      role = msg[:role] || msg['role']
+      content = msg[:content] || msg['content']
+      safe_log("Message #{idx + 1}: #{role}")
+      safe_log("  Content (first 200 chars): #{content.to_s[0..200]}")
+      safe_log("  Full length: #{content.to_s.length} characters")
+    end
+    safe_log("=" * 80)
+    
     client = get_client
     response = client.chat_completion(messages, max_tokens: max_tokens, temperature: temperature)
     
+    # Log ENTIRE response from Venice for debugging
+    safe_log("=" * 80)
+    safe_log("VENICE.AI FULL RESPONSE:")
+    safe_log("=" * 80)
+    safe_log(response.inspect)
+    safe_log("=" * 80)
+    safe_log("VENICE.AI RESPONSE (pretty JSON):")
+    safe_log("=" * 80)
+    begin
+      require 'json'
+      pretty_json = JSON.pretty_generate(response)
+      safe_log(pretty_json)
+      
+      # Also write to file as backup
+      begin
+        log_file = File.join(File.dirname(__FILE__), '..', '..', 'logs', 'venice_response.json')
+        FileUtils.mkdir_p(File.dirname(log_file)) unless File.directory?(File.dirname(log_file))
+        File.write(log_file, pretty_json)
+        safe_log("Venice response also written to: #{log_file}")
+      rescue => file_err
+        safe_log("Could not write to file: #{file_err.message}", 'ERROR')
+      end
+    rescue => e
+      safe_log("Could not pretty print: #{e.message}", 'ERROR')
+      safe_log(response.inspect)
+    end
+    safe_log("=" * 80)
+    
     # Log response for debugging
     if response['error']
-      puts "AI Service Error: #{response['error']}"
+      safe_log("AI Service Error: #{response['error']}", 'ERROR')
     end
     
     response
   rescue StandardError => e
-    puts "AI Service Exception: #{e.class}: #{e.message}"
-    puts e.backtrace.first(5).join("\n")
+    safe_log("AI Service Exception: #{e.class}: #{e.message}", 'ERROR')
+    safe_log(e.backtrace.first(5).join("\n"), 'ERROR')
     # Return error hash instead of raising
     { 'error' => { 'message' => "Send message to AI failed: #{e.message}" } }
   end

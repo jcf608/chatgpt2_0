@@ -49,7 +49,9 @@ export interface ApiResponse<T> {
   error?: {
     message: string;
     code?: string;
-    details?: Record<string, unknown>;
+    details?: Record<string, unknown> & {
+      html_content?: string;
+    };
   };
   timestamp: string;
 }

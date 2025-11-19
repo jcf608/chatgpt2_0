@@ -36,8 +36,15 @@ class ChatService < BaseService
   # Add a message to the chat
   def add_message(role:, content:)
     validate_presence(@chat_id, 'chat_id')
+    
+    # Ensure content is a non-empty string
+    content_str = content.to_s.strip
+    if content_str.empty?
+      raise ArgumentError, "content is required and cannot be empty"
+    end
+    
     chat = load_chat
-    message = chat.add_message(role: role, content: content)
+    message = chat.add_message(role: role, content: content_str)
     chat.save
     message
   rescue StandardError => e
