@@ -18,9 +18,9 @@ class AudioAPI < BaseAPI
     chat_service = ChatService.new(params[:id])
     chat = chat_service.load_chat
 
-    # Get chat content (exclude system messages)
-    messages = chat_service.get_messages.reject { |m| (m[:role] || m['role']) == 'system' }
-    chat_content = messages.map { |m| "#{(m[:role] || m['role']).upcase}: #{m[:content] || m['content']}" }.join("\n\n")
+    # Get only assistant/AI responses (same as Save Chat)
+    messages = chat_service.get_messages.select { |m| (m[:role] || m['role']) == 'assistant' }
+    chat_content = messages.map { |m| m[:content] || m['content'] }.join("\n\n")
 
     # Generate audio using TTS service
     tts_service = TTSService.new(voice: chat.voice)

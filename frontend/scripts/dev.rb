@@ -33,8 +33,20 @@ puts "Starting backend server (port 4567)..."
 script_dir = File.dirname(__FILE__)
 project_root = File.expand_path('../..', script_dir)
 backend_dir = File.join(project_root, 'backend')
+
+# Load API keys from files in the old chatgpt1_0 directory if they exist
+openai_key_file = File.join(project_root, 'chatgpt1_0', 'openAI_api_key')
+openai_key = File.exist?(openai_key_file) ? File.read(openai_key_file).strip : ENV['OPENAI_API_KEY']
+
+env_vars = {
+  'PORT' => '4567',
+  'RACK_ENV' => 'development'
+}
+env_vars['OPENAI_API_KEY'] = openai_key if openai_key && !openai_key.empty?
+
 backend_pid = spawn(
-  "sh", "-c", "cd '#{backend_dir}' && PORT=4567 bundle exec puma config.ru -p 4567 -e development",
+  env_vars,
+  "sh", "-c", "cd '#{backend_dir}' && bundle exec puma config.ru -p 4567 -e development",
   out: [BACKEND_LOG, 'a'],
   err: [BACKEND_LOG, 'a'],
   pgroup: true

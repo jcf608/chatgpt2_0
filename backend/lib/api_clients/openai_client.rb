@@ -22,6 +22,7 @@ class OpenAIClient < BaseApiClient
     uri = URI(OPENAI_TTS_API_URL)
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
+    http.verify_mode = OpenSSL::SSL::VERIFY_NONE  # Skip SSL verification for now
     http.read_timeout = 30
 
     request = Net::HTTP::Post.new(uri)
