@@ -5,10 +5,11 @@ import { ChatHistory } from '../components/chat/ChatHistory';
 import { QuickActionPills } from '../components/chat/QuickActionPills';
 import { Button, ErrorMessage } from '../components/common';
 import { HtmlErrorModal } from '../components/common/HtmlErrorModal';
-import { Plus, FileText } from 'lucide-react';
+import { Plus, FileText, Save } from 'lucide-react';
 import { useChatStore } from '../store/chatStore';
 import { useSettingsStore } from '../store/settingsStore';
 import { usePromptStore } from '../store/promptStore';
+import { useToastStore } from '../store/toastStore';
 import { apiClient } from '../api/client';
 import type { Chat } from '../api/types';
 
@@ -31,6 +32,7 @@ export const ChatsPage: React.FC = () => {
 
   const { apiProvider, selectedPromptId } = useSettingsStore();
   const { prompts, fetchPrompts } = usePromptStore();
+  const toastStore = useToastStore();
   const [wordCount, setWordCount] = useState<number>(0);
   const [selectedPillMessage, setSelectedPillMessage] = useState<string>('');
   const [pillResetKey, setPillResetKey] = useState<number>(0);
@@ -66,6 +68,72 @@ export const ChatsPage: React.FC = () => {
 
   const handlePillSelectionChange = (selectedIds: string[], combinedMessage: string) => {
     setSelectedPillMessage(combinedMessage);
+  };
+
+  const handleSaveChat = () => {
+    if (!currentChat) {
+      toastStore.addToast('No chat to save', 'error');
+      return;
+    }
+
+    try {
+      // Filter to only include assistant responses
+      const assistantMessages = currentChat.messages.filter((msg) => msg.role === 'assistant');
+      
+      if (assistantMessages.length === 0) {
+        toastStore.addToast('No AI responses to save', 'error');
+        return;
+      }
+
+      const lines: string[] = [];
+      lines.push(currentChat.title || 'Untitled Chat');
+      lines.push('='.repeat(50));
+      lines.push(`Date: ${new Date(currentChat.created_at).toLocaleString()}`);
+      lines.push(`Updated: ${new Date(currentChat.updated_at).toLocaleString()}`);
+      if (currentChat.api_provider) {
+        lines.push(`API Provider: ${currentChat.api_provider.toUpperCase()}`);
+      }
+      lines.push(`AI Responses: ${assistantMessages.length}`);
+      lines.push('='.repeat(50));
+      lines.push('');
+
+      // Only include assistant responses, with cleaning
+      assistantMessages.forEach((message) => {
+        // Clean the content by removing "Developer Mode enabled." and similar jailbreak acknowledgments
+        let cleanedContent = message.content
+          .replace(/^Developer Mode enabled\.\s*/i, '')
+          .replace(/^\(Developer Mode Output\)\s*/i, '')
+          .replace(/^RESPONSE \d+:\s*/i, '')
+          .trim();
+        
+        if (cleanedContent) {
+          lines.push(cleanedContent);
+          lines.push('');
+          lines.push('---');
+          lines.push('');
+        }
+      });
+
+      const content = lines.join('\n');
+      const blob = new Blob([content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      
+      // Generate filename with timestamp
+      const timestamp = new Date(currentChat.updated_at).toISOString().replace(/[:.]/g, '-').slice(0, -5);
+      const title = (currentChat.title || 'Untitled Chat').replace(/[^\w\s-]/g, '').replace(/\s+/g, '_').substring(0, 30);
+      a.download = `${timestamp}_${title}_responses.txt`;
+      
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toastStore.addToast('Chat responses saved successfully', 'success');
+    } catch (error) {
+      toastStore.addToast('Failed to save chat responses', 'error');
+    }
   };
 
   const handleNewChat = async () => {
@@ -213,8 +281,21 @@ export const ChatsPage: React.FC = () => {
             disabled={isLoading}
             resetTrigger={pillResetKey}
           />
-          <Button onClick={handleNewChat} variant="primary">
-            <Plus className="h-4 w-4" />
+          <Button 
+            onClick={handleSaveChat} 
+            variant="secondary"
+            disabled={!currentChat}
+            className="h-8 px-3 text-xs"
+          >
+            <Save className="h-3 w-3" />
+            Save Chat
+          </Button>
+          <Button 
+            onClick={handleNewChat} 
+            variant="primary"
+            className="h-8 px-3 text-xs"
+          >
+            <Plus className="h-3 w-3" />
             New Chat
           </Button>
         </div>
