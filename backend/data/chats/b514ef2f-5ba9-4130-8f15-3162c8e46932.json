@@ -1,0 +1,13 @@
+{
+  "id": "b514ef2f-5ba9-4130-8f15-3162c8e46932",
+  "created_at": "2025-11-18T23:53:36+11:00",
+  "updated_at": "2025-11-18T23:53:36+11:00",
+  "title": "New Chat",
+  "system_prompt_id": null,
+  "api_provider": "venice",
+  "voice": "echo",
+  "messages": [],
+  "metadata": {
+    "word_count": 0
+  }
+}

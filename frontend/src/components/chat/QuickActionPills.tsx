@@ -97,7 +97,7 @@ export const QuickActionPills: React.FC<QuickActionPillsProps> = ({
   };
 
   return (
-    <div className="flex flex-wrap gap-2 p-4 border-t border-bg-muted bg-bg-tertiary/30">
+    <div className="flex flex-wrap gap-1 items-center">
       {QUICK_ACTIONS.map((action) => {
         const isSelected = selectedIds.has(action.id);
         return (
@@ -105,7 +105,7 @@ export const QuickActionPills: React.FC<QuickActionPillsProps> = ({
             key={action.id}
             onClick={() => handleToggle(action.id)}
             disabled={disabled}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-full border transition-colors duration-default ease-in-out disabled:opacity-50 disabled:cursor-not-allowed ${
+            className={`flex items-center gap-0.5 px-2 py-0.5 text-[10px] font-medium rounded-full border transition-colors duration-default ease-in-out disabled:opacity-50 disabled:cursor-not-allowed ${
               isSelected
                 ? 'bg-bg-muted border-bg-muted text-text-tertiary cursor-default'
                 : 'border-bg-muted bg-bg-card text-text-secondary hover:bg-primary/10 hover:text-primary hover:border-primary/30'
@@ -113,7 +113,7 @@ export const QuickActionPills: React.FC<QuickActionPillsProps> = ({
             title={action.message}
           >
             {action.icon}
-            <span>{action.label}</span>
+            <span className="whitespace-nowrap">{action.label}</span>
           </button>
         );
       })}

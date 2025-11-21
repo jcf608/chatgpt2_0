@@ -172,7 +172,16 @@ class ChatsAPI < BaseAPI
             status: 503
           )
         else
-          halt 500, error_response(error_msg, code: 'AI_ERROR', status: 500)
+          # Handle timeout and other AI errors
+          if error_msg.include?('timed out') || error_msg.include?('Timeout')
+            halt 504, error_response(
+              "AI service request timed out. Venice.ai is taking longer than expected to respond. Please try again. Error: #{error_msg}",
+              code: 'AI_TIMEOUT_ERROR',
+              status: 504
+            )
+          else
+            halt 500, error_response(error_msg, code: 'AI_ERROR', status: 500)
+          end
         end
       elsif response['choices'] && response['choices'][0] && response['choices'][0]['message']
         message_obj = response['choices'][0]['message']

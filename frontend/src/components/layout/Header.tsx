@@ -7,10 +7,10 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ title, children }) => {
   return (
-    <header className="bg-bg-card border-b border-bg-muted px-6 py-4">
+    <header className="bg-bg-card border-b border-bg-muted px-3 py-2">
       <div className="flex items-center justify-between">
-        {title && <h1 className="text-2xl font-semibold text-text-primary">{title}</h1>}
-        {children && <div className="flex items-center gap-4">{children}</div>}
+        {title && <h1 className="text-base font-semibold text-text-primary">{title}</h1>}
+        {children && <div className="flex items-center gap-2">{children}</div>}
       </div>
     </header>
   );

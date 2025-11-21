@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { AppLayout } from '../components/layout/AppLayout';
 import { ChatWindow } from '../components/chat/ChatWindow';
 import { ChatHistory } from '../components/chat/ChatHistory';
+import { QuickActionPills } from '../components/chat/QuickActionPills';
 import { Button, ErrorMessage } from '../components/common';
 import { HtmlErrorModal } from '../components/common/HtmlErrorModal';
 import { Plus, FileText } from 'lucide-react';
@@ -31,6 +32,8 @@ export const ChatsPage: React.FC = () => {
   const { apiProvider, selectedPromptId } = useSettingsStore();
   const { prompts, fetchPrompts } = usePromptStore();
   const [wordCount, setWordCount] = useState<number>(0);
+  const [selectedPillMessage, setSelectedPillMessage] = useState<string>('');
+  const [pillResetKey, setPillResetKey] = useState<number>(0);
 
   // Fetch prompts on mount to get the selected prompt name
   useEffect(() => {
@@ -54,6 +57,16 @@ export const ChatsPage: React.FC = () => {
       setWordCount(0);
     }
   }, [currentChat]);
+
+  // Reset pills when chat changes
+  useEffect(() => {
+    setSelectedPillMessage('');
+    setPillResetKey((prev) => prev + 1);
+  }, [currentChat?.id]);
+
+  const handlePillSelectionChange = (selectedIds: string[], combinedMessage: string) => {
+    setSelectedPillMessage(combinedMessage);
+  };
 
   const handleNewChat = async () => {
     try {
@@ -82,84 +95,102 @@ export const ChatsPage: React.FC = () => {
     let chatId: string;
     let chat: Chat;
     
-    if (!currentChat) {
-      // Create a new chat if none exists
-      chat = await createChat({
-        title: content.substring(0, 50),
-        api_provider: apiProvider,
-      });
-      chatId = chat.id;
-    } else {
-      chat = currentChat;
-      chatId = currentChat.id;
-    }
-
-    // If this is the first user message, add system prompts silently
-    // Check if there are any user or assistant messages (not just system messages)
-    const hasUserOrAssistantMessages = chat.messages.some(
-      (msg) => msg.role === 'user' || msg.role === 'assistant'
-    );
-    const isFirstUserMessage = !hasUserOrAssistantMessages;
+    // Clear selected pills after sending
+    setSelectedPillMessage('');
+    setPillResetKey((prev) => prev + 1);
     
-    if (isFirstUserMessage) {
-      // Check if system prompts already exist
-      const hasSystemMessages = chat.messages.some((msg) => msg.role === 'system');
+    // Set loading state early so spinner shows immediately
+    if (!isLoading) {
+      // Use the store's setState method directly to set loading
+      useChatStore.setState({ isLoading: true });
+    }
+    
+    try {
+      if (!currentChat) {
+        // Create a new chat if none exists
+        chat = await createChat({
+          title: content.substring(0, 50),
+          api_provider: apiProvider,
+        });
+        chatId = chat.id;
+      } else {
+        chat = currentChat;
+        chatId = currentChat.id;
+      }
+
+      // If this is the first user message, add system prompts silently
+      // Check if there are any user or assistant messages (not just system messages)
+      const hasUserOrAssistantMessages = chat.messages.some(
+        (msg) => msg.role === 'user' || msg.role === 'assistant'
+      );
+      const isFirstUserMessage = !hasUserOrAssistantMessages;
       
-      // Only add system prompts if they don't already exist
-      if (!hasSystemMessages) {
-        const systemPromptParts: string[] = [];
+      if (isFirstUserMessage) {
+        // Check if system prompts already exist
+        const hasSystemMessages = chat.messages.some((msg) => msg.role === 'system');
+        
+        // Only add system prompts if they don't already exist
+        if (!hasSystemMessages) {
+          const systemPromptParts: string[] = [];
 
-        // 1. FIRST: Get base system prompt (Developer Mode jailbreak from system_prompts.txt)
-        try {
-          const baseSystemPrompt = await apiClient.getBaseSystemPrompt();
-          if (baseSystemPrompt.trim()) {
-            systemPromptParts.push(baseSystemPrompt);
-          }
-        } catch (error) {
-          console.error('Failed to load base system prompt:', error);
-        }
-
-        // 2. SECOND: Get system prompt (from chat.system_prompt_id) if it exists
-        if (chat.system_prompt_id) {
+          // 1. FIRST: Get base system prompt (Developer Mode jailbreak from system_prompts.txt)
           try {
-            const systemPrompt = await apiClient.getPrompt(chat.system_prompt_id);
-            if (systemPrompt && systemPrompt.content.trim()) {
-              systemPromptParts.push(systemPrompt.content);
+            const baseSystemPrompt = await apiClient.getBaseSystemPrompt();
+            if (baseSystemPrompt.trim()) {
+              systemPromptParts.push(baseSystemPrompt);
             }
           } catch (error) {
-            console.error('Failed to load system prompt:', error);
+            console.error('Failed to load base system prompt:', error);
           }
-        }
 
-        // 3. THIRD: Add selected prompt (from settings) if it exists
-        if (selectedPrompt && selectedPrompt.content.trim()) {
-          systemPromptParts.push(selectedPrompt.content);
-        }
+          // 2. SECOND: Get system prompt (from chat.system_prompt_id) if it exists
+          if (chat.system_prompt_id) {
+            try {
+              const systemPrompt = await apiClient.getPrompt(chat.system_prompt_id);
+              if (systemPrompt && systemPrompt.content.trim()) {
+                systemPromptParts.push(systemPrompt.content);
+              }
+            } catch (error) {
+              console.error('Failed to load system prompt:', error);
+            }
+          }
 
-        // 4. Send as a single concatenated system message if we have any prompts
-        if (systemPromptParts.length > 0) {
-          const combinedSystemPrompt = systemPromptParts.join('\n\n');
-          if (combinedSystemPrompt.trim()) {
-            await apiClient.addMessage(chatId, {
-              role: 'system',
-              content: combinedSystemPrompt,
-            });
+          // 3. THIRD: Add selected prompt (from settings) if it exists
+          if (selectedPrompt && selectedPrompt.content.trim()) {
+            systemPromptParts.push(selectedPrompt.content);
+          }
+
+          // 4. Send as a single concatenated system message if we have any prompts
+          if (systemPromptParts.length > 0) {
+            const combinedSystemPrompt = systemPromptParts.join('\n\n');
+            if (combinedSystemPrompt.trim()) {
+              await apiClient.addMessage(chatId, {
+                role: 'system',
+                content: combinedSystemPrompt,
+              });
+            }
           }
         }
       }
-    }
 
-    // Send the user's message (pill-only messages with brackets are valid)
-    const trimmedContent = content.trim();
-    if (trimmedContent) {
-      await sendMessage(chatId, trimmedContent);
-    } else {
-      console.warn('Attempted to send empty message');
-      return;
+      // Send the user's message (pill-only messages with brackets are valid)
+      const trimmedContent = content.trim();
+      if (trimmedContent) {
+        await sendMessage(chatId, trimmedContent);
+      } else {
+        console.warn('Attempted to send empty message');
+        useChatStore.setState({ isLoading: false });
+        return;
+      }
+      
+      // Refresh word count after sending (sendMessage already handles this, but ensure we refresh)
+      await fetchChat(chatId);
+    } catch (error) {
+      // Ensure loading is turned off on error
+      useChatStore.setState({ isLoading: false });
+      console.error('Error in handleSendMessage:', error);
+      throw error;
     }
-    
-    // Refresh word count after sending
-    await fetchChat(chatId);
   };
 
   return (
@@ -176,10 +207,17 @@ export const ChatsPage: React.FC = () => {
         </div>
       }
       headerActions={
-        <Button onClick={handleNewChat} variant="primary">
-          <Plus className="h-4 w-4" />
-          New Chat
-        </Button>
+        <div className="flex items-center gap-2">
+          <QuickActionPills 
+            onSelectionChange={handlePillSelectionChange}
+            disabled={isLoading}
+            resetTrigger={pillResetKey}
+          />
+          <Button onClick={handleNewChat} variant="primary">
+            <Plus className="h-4 w-4" />
+            New Chat
+          </Button>
+        </div>
       }
     >
       {error && (
@@ -194,9 +232,9 @@ export const ChatsPage: React.FC = () => {
         </div>
       )}
 
-      <div className="flex gap-6 h-[calc(100vh-12rem)]">
+      <div className="flex gap-3 h-[calc(100vh-7rem)]">
         {/* Chat History Sidebar */}
-        <div className="w-80 flex-shrink-0 bg-bg-card rounded-lg border border-bg-muted overflow-hidden">
+        <div className="w-48 flex-shrink-0 bg-bg-card rounded-lg border border-bg-muted overflow-hidden">
           <ChatHistory
             chats={chats}
             currentChatId={currentChat?.id}
@@ -215,6 +253,7 @@ export const ChatsPage: React.FC = () => {
               isLoading={isLoading}
               wordCount={wordCount}
               chatId={currentChat.id}
+              prependedText={selectedPillMessage}
             />
           ) : (
             <div className="flex flex-col items-center justify-center h-full text-center p-6">

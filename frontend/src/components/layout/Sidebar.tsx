@@ -13,11 +13,11 @@ export const Sidebar: React.FC = () => {
   ];
 
   return (
-    <aside className="w-64 bg-sidebar text-white h-screen fixed left-0 top-0 flex flex-col">
-      <div className="p-6 border-b border-sidebar/50">
-        <h1 className="text-xl font-bold">ChatGPT v2.0</h1>
+    <aside className="w-16 bg-sidebar text-white h-screen fixed left-0 top-0 flex flex-col">
+      <div className="p-3 border-b border-sidebar/50 flex items-center justify-center">
+        <h1 className="text-lg font-bold">C</h1>
       </div>
-      <nav className="flex-1 p-4">
+      <nav className="flex-1 p-2">
         <ul className="space-y-2">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -26,14 +26,14 @@ export const Sidebar: React.FC = () => {
               <li key={item.path}>
                 <Link
                   to={item.path}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-default ease-in-out ${
+                  className={`flex items-center justify-center p-3 rounded-lg transition-all duration-default ease-in-out ${
                     isActive
                       ? 'bg-primary text-white'
                       : 'text-white/70 hover:bg-white/10 hover:text-white'
                   }`}
+                  title={item.label}
                 >
                   <Icon className="h-5 w-5" />
-                  <span className="font-medium">{item.label}</span>
                 </Link>
               </li>
             );

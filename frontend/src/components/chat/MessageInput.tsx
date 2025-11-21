@@ -99,7 +99,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   const wordCount = content.trim().split(/\s+/).filter(Boolean).length;
 
   return (
-    <form onSubmit={handleSubmit} className="border-t border-bg-muted p-4 bg-bg-card">
+    <form onSubmit={handleSubmit} className="border-t border-bg-muted p-1.5 bg-bg-card">
       <div className="flex gap-2 items-end">
         <div className="flex-1">
           <textarea
@@ -110,15 +110,15 @@ export const MessageInput: React.FC<MessageInputProps> = ({
             placeholder={placeholder}
             disabled={isLoading}
             rows={1}
-            className="w-full px-4 py-3 border border-bg-muted rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none transition-all duration-default ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ minHeight: '48px', maxHeight: '200px' }}
+            className="w-full px-2.5 py-1.5 text-xs border border-bg-muted rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none transition-all duration-default ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ minHeight: '32px', maxHeight: '150px' }}
           />
-          <div className="flex items-center justify-between mt-1">
-            <span className="text-xs text-text-tertiary">
-              {wordCount} {wordCount === 1 ? 'word' : 'words'}
+          <div className="flex items-center justify-between mt-0.5">
+            <span className="text-[9px] text-text-tertiary">
+              {wordCount}w
             </span>
-            <span className="text-xs text-text-tertiary">
-              Press Enter to send, Shift+Enter for new line
+            <span className="text-[9px] text-text-tertiary">
+              Enter↵
             </span>
           </div>
         </div>
@@ -127,7 +127,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
           variant="primary"
           isLoading={isLoading}
           disabled={isLoading}
-          className="h-12 px-6"
+          className="h-8 px-3 text-xs"
         >
           {!isLoading && <Send className="h-4 w-4" />}
           Send

@@ -21,7 +21,7 @@ class ApiClient {
       headers: {
         'Content-Type': 'application/json',
       },
-      timeout: 60000, // 60 seconds for AI operations
+      timeout: 480000, // 480 seconds (8 minutes) for AI operations - matches backend timeout
     });
 
     // Request interceptor

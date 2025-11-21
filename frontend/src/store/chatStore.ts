@@ -83,11 +83,16 @@ export const useChatStore = create<ChatState>((set, get) => ({
     try {
       await apiClient.sendMessage(chatId, { content });
       // Refresh the current chat to get updated messages
+      // Keep isLoading true throughout - fetchChat will temporarily set it, but we restore it
       if (get().currentChat?.id === chatId) {
         await get().fetchChat(chatId);
+        // Ensure loading stays true until we're completely done
+        set({ isLoading: true });
       }
       // Refresh chats list to update metadata
       await get().fetchChats();
+      // Now set loading to false after everything completes
+      set({ isLoading: false });
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to send message';
       set({ error: errorMessage, isLoading: false });

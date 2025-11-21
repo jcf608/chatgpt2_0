@@ -49,7 +49,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages }) => {
   }
 
   return (
-    <div className="flex flex-col gap-4 p-4">
+    <div className="flex flex-col gap-2 p-2">
       {messages.map((message) => {
         const isUser = message.role === 'user';
         const isSystem = message.role === 'system';
@@ -59,15 +59,15 @@ export const MessageList: React.FC<MessageListProps> = ({ messages }) => {
         return (
           <div
             key={message.id}
-            className={`flex gap-3 ${isUser ? 'justify-end' : 'justify-start'}`}
+            className={`flex gap-2 ${isUser ? 'justify-end' : 'justify-start'}`}
           >
             {!isUser && (
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                <Bot className="h-5 w-5 text-white" />
+              <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                <Bot className="h-3.5 w-3.5 text-white" />
               </div>
             )}
             <div
-              className={`max-w-[80%] rounded-lg p-4 ${
+              className={`max-w-[90%] rounded-lg p-2 text-sm leading-relaxed ${
                 isUser
                   ? 'bg-primary text-white'
                   : 'bg-bg-card border border-bg-muted text-text-primary'
@@ -77,20 +77,20 @@ export const MessageList: React.FC<MessageListProps> = ({ messages }) => {
                 <div className="flex-1">{formatContent(message.content)}</div>
                 <button
                   onClick={() => copyToClipboard(message.content, message.id)}
-                  className={`flex-shrink-0 p-1 rounded hover:bg-black/10 transition-colors ${
+                  className={`flex-shrink-0 p-0.5 rounded hover:bg-black/10 transition-colors ${
                     isUser ? 'text-white/80' : 'text-text-tertiary'
                   }`}
                   aria-label="Copy message"
                 >
                   {copiedId === message.id ? (
-                    <Check className="h-4 w-4 text-success" />
+                    <Check className="h-3 w-3 text-success" />
                   ) : (
-                    <Copy className="h-4 w-4" />
+                    <Copy className="h-3 w-3" />
                   )}
                 </button>
               </div>
               <div
-                className={`text-xs mt-2 ${
+                className={`text-[9px] mt-1 ${
                   isUser ? 'text-white/70' : 'text-text-tertiary'
                 }`}
               >
@@ -98,8 +98,8 @@ export const MessageList: React.FC<MessageListProps> = ({ messages }) => {
               </div>
             </div>
             {isUser && (
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-secondary flex items-center justify-center">
-                <User className="h-5 w-5 text-white" />
+              <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary-secondary flex items-center justify-center">
+                <User className="h-3.5 w-3.5 text-white" />
               </div>
             )}
           </div>

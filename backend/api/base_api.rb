@@ -218,19 +218,52 @@ class BaseAPI < Sinatra::Base
   error 500 do
     begin
       error_obj = env['sinatra.error']
-      error_msg = if error_obj && error_obj.respond_to?(:message) && !error_obj.message.nil? && !error_obj.message.empty?
-        error_obj.message
-      elsif error_obj
-        "#{error_obj.class}: #{error_obj.inspect[0..500]}"
-      else
-        'Internal server error'
+      
+      # Safely extract error message
+      error_msg = begin
+        if error_obj && error_obj.respond_to?(:message) && !error_obj.message.nil? && !error_obj.message.to_s.empty?
+          error_obj.message.to_s
+        elsif error_obj
+          "#{error_obj.class}: #{error_obj.inspect[0..500]}"
+        else
+          'Internal server error'
+        end
+      rescue => e
+        "Error extracting message: #{e.class}: #{e.message}"
+      end
+      
+      # Safely extract error class name
+      error_class_name = begin
+        if error_obj && error_obj.respond_to?(:class)
+          error_obj.class.name
+        else
+          'Unknown'
+        end
+      rescue => e
+        "Error extracting class: #{e.class}"
+      end
+      
+      # Safely extract backtrace
+      error_backtrace = begin
+        if error_obj && error_obj.respond_to?(:backtrace) && error_obj.backtrace
+          error_obj.backtrace.first(10)
+        else
+          []
+        end
+      rescue => e
+        []
       end
       
       safe_log("=" * 80, 'ERROR')
       safe_log("ERROR 500 HANDLER:", 'ERROR')
       safe_log("Error: #{error_msg}", 'ERROR')
-      safe_log("Class: #{error_obj.class if error_obj}", 'ERROR')
-      safe_log("Backtrace: #{error_obj.backtrace.first(10).join("\n") if error_obj && error_obj.backtrace}", 'ERROR')
+      safe_log("Class: #{error_class_name}", 'ERROR')
+      if error_backtrace.any?
+        safe_log("Backtrace:", 'ERROR')
+        error_backtrace.each { |line| safe_log("  #{line}", 'ERROR') }
+      else
+        safe_log("Backtrace: (none available)", 'ERROR')
+      end
       safe_log("=" * 80, 'ERROR')
       
       # Use a simple JSON response to avoid recursive errors
@@ -242,8 +275,8 @@ class BaseAPI < Sinatra::Base
           message: error_msg,
           code: 'INTERNAL_ERROR',
           details: {
-            error_class: error_obj ? error_obj.class.name : 'Unknown',
-            backtrace: error_obj && error_obj.backtrace ? error_obj.backtrace.first(10) : []
+            error_class: error_class_name,
+            backtrace: error_backtrace
           }
         },
         timestamp: Time.now.iso8601

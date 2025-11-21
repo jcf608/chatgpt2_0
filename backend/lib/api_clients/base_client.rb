@@ -36,8 +36,10 @@ class BaseApiClient
     end
 
     # Set reasonable timeouts
+    # For AI operations (like Venice chat completions), use longer timeouts
+    # since AI responses can take 30-60+ seconds for complex requests
     http.open_timeout = 10
-    http.read_timeout = 30
+    http.read_timeout = ENV.fetch('AI_READ_TIMEOUT', '480').to_i  # Default 480 seconds (8 minutes) for AI operations
     http.write_timeout = 10 if http.respond_to?(:write_timeout=)
 
     # Enable debugging if requested
@@ -83,7 +85,7 @@ class BaseApiClient
     http.use_ssl = true
 
     http.open_timeout = 10
-    http.read_timeout = 30
+    http.read_timeout = ENV.fetch('AI_READ_TIMEOUT', '480').to_i  # Default 480 seconds (8 minutes) for AI operations
 
     request = Net::HTTP::Get.new(uri)
     headers.each { |key, value| request[key] = value }
