@@ -199,6 +199,11 @@ class ApiClient {
   }
 
   // Audio API
+  async getAudioFiles(): Promise<AudioOutput[]> {
+    const response = await this.client.get<ApiResponse<AudioOutput[]>>('/api/v1/audio');
+    return response.data.data || [];
+  }
+
   async generateAudio(chatId: string): Promise<AudioOutput> {
     const response = await this.client.post<ApiResponse<AudioOutput>>(
       `/api/v1/chats/${chatId}/audio`

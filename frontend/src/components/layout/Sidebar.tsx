@@ -1,5 +1,5 @@
 import React from 'react';
-import { MessageSquare, FileText, Settings, Home } from 'lucide-react';
+import { MessageSquare, FileText, Settings, Home, Volume2 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 export const Sidebar: React.FC = () => {
@@ -9,6 +9,7 @@ export const Sidebar: React.FC = () => {
     { path: '/', icon: Home, label: 'Home' },
     { path: '/chats', icon: MessageSquare, label: 'Chats' },
     { path: '/prompts', icon: FileText, label: 'Prompts' },
+    { path: '/audio', icon: Volume2, label: 'Audio' },
     { path: '/settings', icon: Settings, label: 'Settings' },
   ];
 

@@ -36,11 +36,12 @@ export interface AudioOutput {
   id: string;
   chat_id: string;
   file_path: string;
+  file_size?: number;
+  description?: string;
+  duration_seconds?: number;
+  audio_file_exists?: boolean;
   created_at: string;
-  metadata?: {
-    duration?: number;
-    voice?: string;
-  };
+  updated_at?: string;
 }
 
 export interface ApiResponse<T> {

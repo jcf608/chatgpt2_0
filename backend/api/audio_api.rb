@@ -7,6 +7,12 @@ require_relative '../services/chat_service'
 # Endpoints: POST /api/v1/chats/:id/audio, GET /api/v1/audio/:id
 
 class AudioAPI < BaseAPI
+  # List all audio files
+  get '/api/v1/audio' do
+    audio_files = AudioOutput.all
+    success_response(audio_files.map(&:to_h))
+  end
+
   # Generate audio from chat
   post '/api/v1/chats/:id/audio' do
     chat_service = ChatService.new(params[:id])

@@ -51,6 +51,12 @@ export const QUICK_ACTIONS: QuickAction[] = [
     message: 'Continue the conversation with fresh, varied phrasing. Avoid repetitious phrasing and overly long detailed passages. Keep it engaging and dynamic.',
     icon: <MessageSquare className="h-3 w-3" />,
   },
+  {
+    id: '12-poolside',
+    label: '12 Poolside',
+    message: 'give me 12 exchanges of the three characters as they are sitting by the pool',
+    icon: <MessageSquare className="h-3 w-3" />,
+  },
 ];
 
 interface QuickActionPillsProps {

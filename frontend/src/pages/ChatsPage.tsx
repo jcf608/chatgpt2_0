@@ -5,7 +5,7 @@ import { ChatHistory } from '../components/chat/ChatHistory';
 import { QuickActionPills } from '../components/chat/QuickActionPills';
 import { Button, ErrorMessage } from '../components/common';
 import { HtmlErrorModal } from '../components/common/HtmlErrorModal';
-import { Plus, FileText, Save } from 'lucide-react';
+import { Plus, FileText, Save, Volume2 } from 'lucide-react';
 import { useChatStore } from '../store/chatStore';
 import { useSettingsStore } from '../store/settingsStore';
 import { usePromptStore } from '../store/promptStore';
@@ -36,6 +36,7 @@ export const ChatsPage: React.FC = () => {
   const [wordCount, setWordCount] = useState<number>(0);
   const [selectedPillMessage, setSelectedPillMessage] = useState<string>('');
   const [pillResetKey, setPillResetKey] = useState<number>(0);
+  const [isGeneratingAudio, setIsGeneratingAudio] = useState<boolean>(false);
 
   // Fetch prompts on mount to get the selected prompt name
   useEffect(() => {
@@ -136,11 +137,41 @@ export const ChatsPage: React.FC = () => {
     }
   };
 
+  const handleTextToSpeech = async () => {
+    if (!currentChat) {
+      toastStore.addToast('No chat to convert to speech', 'error');
+      return;
+    }
+
+    // Check if there are any assistant messages
+    const hasAssistantMessages = currentChat.messages.some((msg) => msg.role === 'assistant');
+    if (!hasAssistantMessages) {
+      toastStore.addToast('No AI responses to convert to speech', 'error');
+      return;
+    }
+
+    setIsGeneratingAudio(true);
+    toastStore.addToast('Generating audio... You can navigate away', 'info');
+
+    // Generate audio in background - don't await, let it complete async
+    apiClient.generateAudio(currentChat.id)
+      .then(() => {
+        toastStore.addToast('Audio generation complete', 'success');
+        setIsGeneratingAudio(false);
+      })
+      .catch((error) => {
+        console.error('Failed to generate audio:', error);
+        toastStore.addToast('Failed to generate audio', 'error');
+        setIsGeneratingAudio(false);
+      });
+  };
+
   const handleNewChat = async () => {
     try {
       const chat = await createChat({
         title: 'New Chat',
         api_provider: apiProvider,
+        system_prompt_id: selectedPromptId || undefined,
       });
       setCurrentChat(chat);
     } catch (err) {
@@ -179,6 +210,7 @@ export const ChatsPage: React.FC = () => {
         chat = await createChat({
           title: content.substring(0, 50),
           api_provider: apiProvider,
+          system_prompt_id: selectedPromptId || undefined,
         });
         chatId = chat.id;
       } else {
@@ -281,6 +313,16 @@ export const ChatsPage: React.FC = () => {
             disabled={isLoading}
             resetTrigger={pillResetKey}
           />
+          <Button 
+            onClick={handleTextToSpeech} 
+            variant="secondary"
+            disabled={!currentChat || isGeneratingAudio}
+            isLoading={isGeneratingAudio}
+            className="h-8 px-3 text-xs"
+          >
+            <Volume2 className="h-3 w-3" />
+            TTS
+          </Button>
           <Button 
             onClick={handleSaveChat} 
             variant="secondary"
